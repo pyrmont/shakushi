@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title><%= @feed.title %></title>
+    <link><%= @feed.link %></link>
+    <description><%= @feed.description %></description>
+    <generator>Shakushi</generator>
+    <lastBuildDate><%= @feed.date %>
+    <% for @item in @feed.items %>
+    <item>
+      <title><% @item.title %></title>
+      <link><%= @item.link %></link>
+      <pubDate><%= @item.date %></pubDate>
+      <guid><%= @item.link %></guid>
+      <description><%= @item.description %></description>
+    </item>
+    <% end %>
+  </channel>
+</rss>
