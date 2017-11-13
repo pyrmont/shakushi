@@ -12,4 +12,4 @@ get_lowe = Shakushi::Base.new(
   match_all: false
 )
 
-puts get_lowe.filtered_feed.inspect
+get_lowe.output_rss

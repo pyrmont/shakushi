@@ -1,6 +1,7 @@
 require 'net/http'
 require 'uri'
 require 'feedjira'
+require 'erb'
 
 module Shakushi
   class Base
@@ -8,20 +9,27 @@ module Shakushi
     attr_reader :description
     attr_reader :parent_url
     attr_reader :local_dir
-    attr_reader :filtered_feed
+    attr_reader :rss_url
+    attr_reader :feed
 
     def initialize(title:, description:, parent_url:, local_dir:, target_url:, filters:, match_all:)
       @title = title
       @description = description
       @parent_url = parent_url
       @local_dir = local_dir
-      @filtered_feed = filter(
+      @rss_url = parent_url + local_dir + '/feed.rss'
+      @feed = filter(
         input: Feedjira::Feed.parse(Net::HTTP.get(URI.parse(target_url))),
         filters: filters.map { |f|
           Shakushi::Filter.new(attribute: f[:attribute], pattern: f[:pattern])
         },
         match_all: match_all
       )
+    end
+
+    def output_rss
+      renderer = ERB.new(File.read('template.rss.erb'))
+      renderer.result(binding)
     end
 
     private

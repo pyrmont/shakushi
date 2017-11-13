@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title><%= @feed.title %></title>
-    <link><%= @feed.link %></link>
-    <description><%= @feed.description %></description>
+    <title><%= @title %></title>
+    <link><%= @rss_url %></link>
+    <description><%= @description %></description>
     <generator>Shakushi</generator>
-    <lastBuildDate><%= @feed.date %>
-    <% for @item in @feed.items %>
+    <lastBuildDate><%= @feed.last_built %></lastBuildDate>
+    <% for entry in @feed.entries %>
     <item>
-      <title><% @item.title %></title>
-      <link><%= @item.link %></link>
-      <pubDate><%= @item.date %></pubDate>
-      <guid><%= @item.link %></guid>
-      <description><%= @item.description %></description>
+      <title><%= entry.title %></title>
+      <link><%= entry.url %></link>
+      <pubDate><%= entry.published %></pubDate>
+      <guid><%= entry.url %></guid>
+      <description><%= entry.summary %></description>
     </item>
     <% end %>
   </channel>
