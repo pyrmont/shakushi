@@ -34,7 +34,6 @@ module Shakushi
       feed = modify_tags xml: feed
       feed = preserve_items xml: feed
       feed = restore_items xml: feed
-      feed
     end
 
     def filter(xml:, filters:, match_all:)
