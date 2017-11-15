@@ -7,15 +7,8 @@ module Shakushi
       @feed_attributes = feed_attributes
       @parent_url = parent_url
       @content_dir = content_dir
-      @feed = modify(
-        xml: filter(
-          xml: Nokogiri::XML(open(target_url)),
-          filters: filters.map { |f|
-            Shakushi::Filter.new(tag: f[:tag], pattern: f[:pattern])
-          },
-          match_all: match_all
-        )
-      )
+      @cache_dir = setup_cache content_dir: @content_dir
+      @feed = build_feed url: target_url, filters: filters, match_all: match_all
     end
 
     def output_rss
@@ -23,6 +16,26 @@ module Shakushi
     end
 
     private
+
+    def setup_cache(content_dir:)
+      dirname = 'cache' + '/' + content_dir
+      Dir.mkdir dirname unless File.directory? dirname
+      dirname
+    end
+
+    def build_feed(url:, filters:, match_all:)
+      feed = filter(
+        xml: Nokogiri::XML(open(url)),
+        filters: filters.map { |f|
+          Shakushi::Filter.new(tag: f[:tag], pattern: f[:pattern])
+        },
+        match_all: match_all
+      )
+      feed = modify_tags xml: feed
+      feed = preserve_items xml: feed
+      feed = restore_items xml: feed
+      feed
+    end
 
     def filter(xml:, filters:, match_all:)
       xml.search('.//item')&.each do |item|
@@ -40,7 +53,7 @@ module Shakushi
       xml
     end
 
-    def modify(xml:)
+    def modify_tags(xml:)
       @feed_attributes[:link] &&= @parent_url + '/' + @content_dir + '/feed.rss'
       @feed_attributes.each do |tag, content|
         if tag == :itunes
@@ -75,6 +88,28 @@ module Shakushi
         parent_node = xml.at_xpath('//' + parent_tag)
         node = parent_node.add_child(Nokogiri::XML::Node.new tag.to_s, xml)
       end
+    end
+
+    def preserve_items(xml:)
+      xml.search('.//item').each do |item|
+        date = DateTime.parse item.at_xpath('.//pubDate').content
+        filename = @cache_dir + '/' + date.to_time.to_i.to_s + '.item'
+        File.open(filename, 'w') { |file| file.write(item.to_xml) }
+        item.unlink
+      end
+      xml
+    end
+
+    def restore_items(xml:)
+      parent_node = xml.at_xpath('//channel')
+      filenames = Dir.entries(@cache_dir)
+        .select { |fn| /\.item$/ === fn }
+        .sort_by { |fn| fn }
+      filenames.each do |fn|
+        fragment_xml = File.read @cache_dir + '/' + fn
+        parent_node.add_child fragment_xml
+      end
+      xml
     end
   end
 
