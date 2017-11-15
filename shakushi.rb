@@ -3,7 +3,8 @@ require 'nokogiri'
 
 module Shakushi
   class Base
-    def initialize(feed_attributes:, parent_url:, content_dir:, target_url:, filters:, match_all: false)
+    def initialize(feed_type:, feed_attributes:, parent_url:, content_dir:, target_url:, filters:, match_all: false)
+      @t = setup_tag_names feed_type: feed_type
       @feed_attributes = feed_attributes
       @parent_url = parent_url
       @content_dir = content_dir
@@ -16,6 +17,16 @@ module Shakushi
     end
 
     private
+
+    def setup_tag_names(feed_type:)
+      case feed_type.to_sym
+      when :rss
+        tag_names = { feed: 'channel', entry: 'item', published: 'pubDate' }
+      when :atom
+        tag_names = { feed: 'feed', entry: 'entry', published: 'published' }
+      end
+      tag_names
+    end
 
     def setup_cache(content_dir:)
       dirname = 'cache' + '/' + content_dir
@@ -37,7 +48,7 @@ module Shakushi
     end
 
     def filter(xml:, filters:, match_all:)
-      xml.search('.//item')&.each do |item|
+      xml.search(@t[:entry])&.each do |item|
         if match_all
           keep_it = filters.reduce(nil) do |memo, f|
             (memo == nil) ? f.keep?(item) : memo && f.keep?(item)
@@ -80,19 +91,20 @@ module Shakushi
       node.content = content
     end
 
-    def find_or_create_node(xml:, tag:, parent_tag: 'channel')
-      if result = xml.at_xpath('//' + tag.to_s)
+    def find_or_create_node(xml:, tag:, parent_tag: nil)
+      parent_tag = @t[:feed] if parent_tag == nil
+      if result = xml.at_css(tag.to_s)
         node = result
       else
-        parent_node = xml.at_xpath('//' + parent_tag)
+        parent_node = xml.at_css(parent_tag)
         node = parent_node.add_child(Nokogiri::XML::Node.new tag.to_s, xml)
       end
     end
 
     def preserve_items(xml:)
-      xml.search('.//item').each do |item|
-        date = DateTime.parse item.at_xpath('.//pubDate').content
-        filename = @cache_dir + '/' + date.to_time.to_i.to_s + '.item'
+      xml.search(@t[:entry]).each do |item|
+        date = DateTime.parse item.at_css(@t[:published]).content
+        filename = @cache_dir + '/' + date.to_time.to_i.to_s + '.entry'
         File.open(filename, 'w') { |file| file.write(item.to_xml) }
         item.unlink
       end
@@ -100,7 +112,7 @@ module Shakushi
     end
 
     def restore_items(xml:)
-      parent_node = xml.at_xpath('//channel')
+      parent_node = xml.at_css(@t[:feed])
       filenames = Dir.entries(@cache_dir)
         .select { |fn| /\.item$/ === fn }
         .sort_by { |fn| fn }
@@ -119,7 +131,7 @@ module Shakushi
     end
 
     def keep?(item)
-      item.search('.//' + @tag_name)&.reduce(false) do |memo, t|
+      item.search(@tag_name)&.reduce(false) do |memo, t|
         memo = true if @pattern === t.content
       end
     end
