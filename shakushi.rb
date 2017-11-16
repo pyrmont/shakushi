@@ -1,14 +1,20 @@
+require 'digest'
 require 'open-uri'
 require 'nokogiri'
 
 module Shakushi
   class Base
+    FEED_FILENAME = 'feed.xml'
+    FILE_EXT = '.item'
+    FILE_SEP = '/'
+    MAX_ITEMS = 20
+
     def initialize(feed_type:, feed_attributes:, parent_url:, content_dir:, target_url:, filters:, match_all: false)
       @t = setup_tag_names feed_type: feed_type
       @feed_attributes = feed_attributes
       @parent_url = parent_url
       @content_dir = content_dir
-      @cache_dir = setup_cache content_dir: @content_dir
+      @data_dir = setup_cache content_dir: @content_dir
       @feed = build_feed url: target_url, filters: filters, match_all: match_all
     end
 
@@ -21,15 +27,15 @@ module Shakushi
     def setup_tag_names(feed_type:)
       case feed_type.to_sym
       when :rss
-        tag_names = { feed: 'channel', entry: 'item', published: 'pubDate' }
+        tag_names = { feed: 'channel', entry: 'item', id: 'guid', published: 'pubDate' }
       when :atom
-        tag_names = { feed: 'feed', entry: 'entry', published: 'published' }
+        tag_names = { feed: 'feed', entry: 'entry', id: 'id', published: 'published' }
       end
       tag_names
     end
 
     def setup_cache(content_dir:)
-      dirname = 'cache' + '/' + content_dir
+      dirname = 'data' + FILE_SEP + content_dir
       Dir.mkdir dirname unless File.directory? dirname
       dirname
     end
@@ -64,7 +70,7 @@ module Shakushi
     end
 
     def modify_tags(xml:)
-      @feed_attributes[:link] &&= @parent_url + '/' + @content_dir + '/feed.rss'
+      @feed_attributes[:link] &&= @parent_url + FILE_SEP + @content_dir + FILE_SEP + FEED_FILENAME
       @feed_attributes.each do |tag, content|
         if tag == :itunes
           modify_itunes_tags(xml: xml, tags: content)
@@ -104,8 +110,12 @@ module Shakushi
     def preserve_items(xml:)
       xml.search(@t[:entry]).each do |item|
         date = DateTime.parse item.at_css(@t[:published]).content
-        filename = @cache_dir + '/' + date.to_time.to_i.to_s + '.entry'
-        File.open(filename, 'w') { |file| file.write(item.to_xml) }
+        time = date.to_time.to_i
+        hash = Digest::MD5.hexdigest item.at_css(@t[:id]).content
+        path = @data_dir + FILE_SEP + date.year.to_s
+        Dir.mkdir path unless File.directory? path
+        filepath = path + FILE_SEP + time.to_s + '-' + hash + FILE_EXT
+        File.open(filepath, 'w') { |file| file.write(item.to_xml) }
         item.unlink
       end
       xml
@@ -113,13 +123,27 @@ module Shakushi
 
     def restore_items(xml:)
       parent_node = xml.at_css(@t[:feed])
-      filenames = Dir.entries(@cache_dir)
-        .select { |fn| /\.item$/ === fn }
-        .sort_by { |fn| fn }
-      filenames.each do |fn|
-        fragment_xml = File.read @cache_dir + '/' + fn
-        parent_node.add_child fragment_xml
+
+      dirs = Dir.entries(@data_dir)
+      .select { |fn| /^\d{4}$/ === fn }
+      .sort
+      .reverse
+
+      count = 0
+      dirs.each do |d|
+        year_dir = @data_dir + FILE_SEP + d
+        Dir.entries(year_dir)
+        .select { |fn| /#{FILE_EXT}$/ === fn }
+        .sort
+        .reverse
+        .each do |fn|
+          fragment_xml = File.read year_dir + FILE_SEP + fn
+          parent_node.add_child fragment_xml
+          break if (count = count + 1) > MAX_ITEMS
+        end
+        break if count > MAX_ITEMS
       end
+
       xml
     end
   end
