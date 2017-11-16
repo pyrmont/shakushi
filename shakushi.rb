@@ -8,14 +8,21 @@ module Shakushi
     FILE_EXT = '.item'
     FILE_SEP = '/'
     MAX_ITEMS = 20
+    ATOM_TAGS = { feed: 'feed', entry: 'entry', id: 'id', published: 'published' }
+    RSS_TAGS = { feed: 'channel', entry: 'item', id: 'guid', published: 'pubDate' }
 
-    def initialize(feed_type:, feed_attributes:, parent_url:, content_dir:, target_url:, filters:, match_all: false)
+    def initialize(feed_type:, feed_attributes:, parent_url:, content_dir:, target_url:, filters:, match_all: false, item_function:)
       @t = setup_tag_names feed_type: feed_type
       @feed_attributes = feed_attributes
       @parent_url = parent_url
       @content_dir = content_dir
       @data_dir = setup_cache content_dir: @content_dir
-      @feed = build_feed url: target_url, filters: filters, match_all: match_all
+      @feed = build_feed(
+        url: target_url,
+        filters: filters,
+        match_all: match_all,
+        item_function: item_function
+      )
     end
 
     def output_rss
@@ -25,13 +32,10 @@ module Shakushi
     private
 
     def setup_tag_names(feed_type:)
-      case feed_type.to_sym
-      when :rss
-        tag_names = { feed: 'channel', entry: 'item', id: 'guid', published: 'pubDate' }
-      when :atom
-        tag_names = { feed: 'feed', entry: 'entry', id: 'id', published: 'published' }
+      tag_names = case feed_type.to_sym
+        when :atom then ATOM_TAGS
+        when :rss then RSS_TAGS
       end
-      tag_names
     end
 
     def setup_cache(content_dir:)
@@ -40,20 +44,21 @@ module Shakushi
       dirname
     end
 
-    def build_feed(url:, filters:, match_all:)
+    def build_feed(url:, filters:, match_all:, item_function:)
       feed = filter(
         xml: Nokogiri::XML(open(url)),
         filters: filters.map { |f|
           Shakushi::Filter.new(tag: f[:tag], pattern: f[:pattern])
         },
-        match_all: match_all
+        match_all: match_all,
+        item_function: item_function
       )
       feed = modify_tags xml: feed
       feed = preserve_items xml: feed
       feed = restore_items xml: feed
     end
 
-    def filter(xml:, filters:, match_all:)
+    def filter(xml:, filters:, match_all:, item_function:)
       xml.search(@t[:entry])&.each do |item|
         if match_all
           keep_it = filters.reduce(nil) do |memo, f|
@@ -64,7 +69,12 @@ module Shakushi
             (memo == nil) ? f.keep?(item) : memo || f.keep?(item)
           end
         end
-        item.unlink unless keep_it
+
+        if keep_it
+          item_function.call item
+        else
+          item.unlink
+        end
       end
       xml
     end
