@@ -62,7 +62,7 @@ module Shakushi
       feed = modify_tags xml: feed
       feed = preserve_items xml: feed
       feed = restore_items xml: feed
-      feed = Nokogiri::XML(feed.to_xml, &:noblanks)
+      feed = Nokogiri::XML feed.to_xml, &:noblanks
     end
 
     def filter(xml:, filters:, match_all:, item_function:)
@@ -77,15 +77,15 @@ module Shakushi
     end
 
     def keep?(item, filters:, match_all:)
-      if match_all
-        filters.reduce(nil) do |memo, f|
-          (memo == nil) ? f.keep?(item) : memo && f.keep?(item)
-        end
-      else
-        filters.reduce(nil) do |memo, f|
-          (memo == nil) ? f.keep?(item) : memo || f.keep?(item)
-        end
-      end
+      keep_it = if match_all
+                  filters.reduce(nil) do |memo, f|
+                    (memo == nil) ? f.keep?(item) : memo && f.keep?(item)
+                  end
+                else
+                  filters.reduce(nil) do |memo, f|
+                    (memo == nil) ? f.keep?(item) : memo || f.keep?(item)
+                  end
+                end
     end
 
     def modify_tags(xml:)
