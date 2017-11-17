@@ -34,7 +34,7 @@ module Shakushi
     end
 
     def output_rss
-      @feed.to_xml
+      @feed.to_xml indent: 4
     end
 
     private
@@ -62,6 +62,7 @@ module Shakushi
       feed = modify_tags xml: feed
       feed = preserve_items xml: feed
       feed = restore_items xml: feed
+      feed = Nokogiri::XML(feed.to_xml, &:noblanks)
     end
 
     def filter(xml:, filters:, match_all:, item_function:)
