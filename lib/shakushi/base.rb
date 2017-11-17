@@ -106,6 +106,8 @@ module Shakushi
         node = find_or_create_node xml: xml, tag: 'itunes:' + partial.to_s
         if partial == :image
           node['href'] = content
+        elsif partial == :category
+          node['text'] = content
         else
           node.content = content
         end
