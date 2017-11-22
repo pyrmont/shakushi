@@ -7,7 +7,9 @@
 *.gz
 *.DS_Store
 *.db
+jump.rb
 
 data/
 filtrates/
+output/
 vendor/
