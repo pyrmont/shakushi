@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Archive: <%= @page_title + ' > ' + @page_year %></title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+  <% for @entry in @entries %>
+  <div>
+    <h2><a href="<%= @entry.link %>"><%= @entry.title %></a></h2>
+    <p><%= @entry.summary %></p>
+  </div>
+  <% end %>
+  <div>
+    <h3>Archives</h3>
+    <ul>
+      <% for @year in @years %>
+        <% if @page_year == @year %>
+      <li><%= @year %></li>
+        <% else %>
+      <li><a href="archive-<%= @year %>.html"><%= @year %></a></li>
+        <% end %>
+      <% end %>
+    </ul>
+  </div>
+</body>
+</html>

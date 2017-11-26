@@ -20,9 +20,18 @@ module Shakushi
     class Element
       attr_reader :name
 
+#      def self.new(element)
+#        return nil if val.nil?
+#        super
+#      end
+
       def initialize(element)
         @element = element
         @name = element.name
+      end
+
+      def [](key)
+        @element[key]
       end
 
       def []=(key, value)
@@ -36,7 +45,8 @@ module Shakushi
       end
 
       def child(selector:)
-        Shakushi::XML::Element.new @element.at_css(selector)
+        result = @element.at_css selector
+        (result.nil?) ? nil : Shakushi::XML::Element.new(result)
       end
 
       def children(selector:)

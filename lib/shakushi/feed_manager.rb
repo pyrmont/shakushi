@@ -1,14 +1,15 @@
+require_relative 'xml'
+
 module Shakushi
   class FeedManager
-    attr_reader :feed
-
-    def initialize(xml, type:, domain:, slug:)
-      @feed = Shakushi::Feed.new xml, type: type
-      @feed_url = domain + '/' + slug + '/' + 'feed.xml'
+    def initialize(url, type:, domain:, dirname:)
+      xml = Shakushi::XML::Parser.parse url
+      @feed = Shakushi::FeedManager::Feed.new xml, type: type
+      @feed_url = domain + '/' + dirname + '/' + FEED_FILENAME
     end
 
     def change_properties(replacements:)
-      replacements[:link] = @feed_url unless @feed_url.nil?
+      replacements[:link] = @feed_url
       replacements.each do |tag, value|
         if tag == :itunes
           change_itunes_tags tags: value
@@ -42,7 +43,8 @@ module Shakushi
 
     def filter_feed(patterns:, match_all: false)
       filters = patterns.map do |f|
-                  Shakushi::Filter.new tag_name: f[:tag], pattern: f[:pattern]
+                  Shakushi::FeedManager::Filter.new(tag_name: f[:tag],
+                                                    pattern: f[:pattern])
                 end
       @feed.entries.each do |entry|
         keep = if match_all
@@ -58,11 +60,17 @@ module Shakushi
       end
     end
 
-    def save_feed(slug:)
-      output_dir = OUTPUT_DIR + FILE_SEP + slug
-      Dir.mkdir output_dir unless File.directory? output_dir
-      file_path = output_dir + FILE_SEP + 'feed.xml'
-      File.open(file_path, 'w') { |file| file.write(@feed.to_s) }
+    def output(output_format)
+      case output_format
+      when :text then @feed.to_s
+      end
+    end
+
+    def save_feed(dirname:)
+      dirpath = OUTPUT_DIRNAME + FILE_SEP + dirname
+      Dir.mkdir dirpath unless File.directory? dirpath
+      filepath = dirpath + FILE_SEP + FEED_FILENAME
+      File.open(filepath, 'w') { |file| file.write(@feed.to_s) }
     end
 
     def transform_entries(function:)
@@ -72,12 +80,13 @@ module Shakushi
     end
   end
 
-  class Feed
+  class FeedManager::Feed
     attr_reader :type
 
     def initialize(xml, type: :rss)
       @tag_name = case type
                   when :atom then ATOM_TAGS
+                  when :podcast then PODCAST_TAGS
                   when :rss then RSS_TAGS
                   end
       @type = type
@@ -91,6 +100,7 @@ module Shakushi
     def properties
       feed_element = case @type
                      when :rss then @xml.child(selector: @tag_name[:feed])
+                     when :podcast then @xml.child(selector: @tag_name[:feed])
                      when :atom then @xml
                      end
       properties = feed_element.children.select do |child|
@@ -110,7 +120,7 @@ module Shakushi
     end
   end
 
-  class Filter
+  class FeedManager::Filter
     def initialize(tag_name:, pattern:)
       @tag_name = tag_name
       @pattern = pattern
