@@ -25,10 +25,15 @@ module Shakushi
                                    dirname: params[:id])
     data = Shakushi::Datastore.new dirname: params[:id]
 
-    fm.filter_feed patterns: params[:filters]
-    fm.change_properties replacements: params[:properties]
-    fm.transform_entries function: params[:replace_description]
+    filters = params[:filters]
+    properties = params[:properties]
+    function = params[:function]
+
+    fm.filter_feed patterns: filters unless filters.nil?
+    fm.change_properties replacements: properties unless properties.nil?
+    fm.transform_entries function: function unless function.nil?
     fm.save_feed dirname: params[:id]
+
     data.save_entries fm.entries
   end
 
