@@ -57,7 +57,7 @@ module Shakushi
 
       def contains?(tag_name, pattern)
         @element.search(tag_name)&.reduce(false) do |memo, t|
-          memo = true if pattern === t.content
+          memo = true if pattern === t.content # TODO: This should be `memo && pattern === t.content`
         end
       end
 
