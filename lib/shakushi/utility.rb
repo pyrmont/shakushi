@@ -15,19 +15,6 @@ module Shakushi
       end
     end
 
-    def is?(arg, type:)
-      alternatives = type.scan(/[^\|]+/)
-      result = if alternatives.length > 1
-                 res = alternatives.reduce(false) do |memo, a|
-                   klass = Object.const_get a
-                   memo || arg.is_a?(klass)
-                 end
-               else
-                 klass = Object.const_get type
-                 arg.is_a? klass
-               end
-    end
-
     module Parser
       def self.parse(str)
         check_syntax(str)
