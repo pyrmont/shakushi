@@ -6,14 +6,17 @@ module Shakushi
     include TypeCheck
 
     def initialize(url, type:, domain:, dirname:)
-      check types, url: String, type: Symbol, domain: String, dirname: String
+      check types, url: 'String',
+                   type: 'Symbol',
+                   domain: 'String',
+                   dirname: 'String'
       xml = Shakushi::XML::Parser.parse url
       @feed = Shakushi::FeedManager::Feed.new xml, type: type
       @feed_url = domain + '/' + dirname + '/' + FEED_FILENAME
     end
 
     def change_properties(replacements:)
-      check types, replacements: Hash
+      check types, replacements: 'Hash'
       replacements[:link] = @feed_url
       replacements.each do |tag, value|
         if tag == :itunes
@@ -25,7 +28,7 @@ module Shakushi
     end
 
     def change_itunes_tags(tags:)
-      check types, tags: Hash
+      check types, tags: 'Hash'
       tags.each do |partial, content|
         element = @feed.property(name: 'itunes|' + partial.to_s)
         if partial == :image
@@ -39,7 +42,7 @@ module Shakushi
     end
 
     def change_tag(tag_name:, content:)
-      check types, tag_name: String, content: String
+      check types, tag_name: 'String', content: 'String'
       element = @feed.property(name: tag_name)
       element.content = content
     end
@@ -49,13 +52,14 @@ module Shakushi
     end
 
     def filter_feed(patterns:, match_all: false)
-      check types, patterns: Array, match_all: Boolean
+      check types, patterns: 'Array', match_all: 'Boolean'
       filters = patterns.map do |f|
                   Shakushi::FeedManager::Filter.new(tag_name: f[:tag],
                                                     pattern: f[:pattern])
                 end
       @feed.entries.each do |entry|
         keep = if match_all
+          # TODO: Should be `reduce(false) ... memo && f.match?(entry)` etc
                  filters.reduce(nil) do |memo, f|
                    (memo == nil) ? f.match?(entry) : memo && f.match?(entry)
                  end
@@ -69,14 +73,14 @@ module Shakushi
     end
 
     def output(output_format)
-      check types, output_format: Symbol
+      check types, output_format: 'Symbol'
       case output_format
       when :text then @feed.to_s
       end
     end
 
     def save_feed(dirname:)
-      check types, dirname: String
+      check types, dirname: 'String'
       dirpath = OUTPUT_DIRNAME + FILE_SEP + dirname
       Dir.mkdir dirpath unless File.directory? dirpath
       filepath = dirpath + FILE_SEP + FEED_FILENAME
@@ -84,7 +88,7 @@ module Shakushi
     end
 
     def transform_entries(function:)
-      check types, function: Proc
+      check types, function: 'Proc'
       @feed.entries.each do |entry|
         function.call entry
       end
@@ -97,7 +101,7 @@ module Shakushi
     attr_reader :type
 
     def initialize(xml, type: :rss)
-      check types, xml: Shakushi::XML::Element, type: Symbol
+      check types, xml: 'Shakushi::XML::Element', type: 'Symbol'
       @tag_name = case type
                   when :atom then ATOM_TAGS
                   when :podcast then PODCAST_TAGS
@@ -125,7 +129,7 @@ module Shakushi
     end
 
     def property(name:)
-      check types, name: String
+      check types, name: 'String'
       child = @xml.child(selector: name)
       property = (child) ? child : @xml.add_child(name: name)
     end
@@ -139,13 +143,13 @@ module Shakushi
     include TypeCheck
 
     def initialize(tag_name:, pattern:)
-      check types, tag_name: String, pattern: Regexp
+      check types, tag_name: 'String', pattern: 'Regexp'
       @tag_name = tag_name
       @pattern = pattern
     end
 
     def match?(element)
-      check types, element: Shakushi::XML::Element
+      check types, element: 'Shakushi::XML::Element'
       element.contains? @tag_name, @pattern
     end
   end

@@ -5,14 +5,13 @@ module Shakushi
     def check(context, **checks)
       checks.each do |k, v|
         arg = context.local_variable_get(k)
-        klasses = TypeCheck::Parser.parse v
-        if v == 'Boolean'
-          error_message = "`#{k}` is type #{arg.class.name}, not a Boolean"
-          raise TypeError, error_message unless arg == true || arg == false
-        else
-          error_message = "`#{k}` is type #{arg.class.name}, not #{v}"
-          raise TypeError, error_message unless is? arg, type: v
+        classes = TypeCheck::Parser.parse v
+        match = classes.reduce(false) do |memo, c|
+          break memo if memo == true
+          memo = TypeCheck::ClassElement.match arg, c
         end
+        msg = "The object '#{k}' is #{arg.class.name} but expected #{v}"
+        raise TypeError, msg unless match
       end
     end
 
@@ -42,14 +41,14 @@ module Shakushi
           case c
           when '|'
             next if content.empty? # The previous character must have been '>'
-            el = Shakushi::TypeCheck::Parser::Element.new
+            el = Shakushi::TypeCheck::ClassElement.new
             el.name = content
             content = ''
             elements = stack.pop
             elements.push el
             stack.push elements
           when '<'
-            el = Shakushi::TypeCheck::Parser::Element.new
+            el = Shakushi::TypeCheck::ClassElement.new
             el.name = content
             content = ''
             stack.push el
@@ -59,7 +58,7 @@ module Shakushi
             if content.empty? # The previous character must have been '>'.
               parent_collection = stack.pop
             else
-              el = Shakushi::TypeCheck::Parser::Element.new
+              el = Shakushi::TypeCheck::ClassElement.new
               el.name = content
               content = ''
               parent_collection = stack.pop
@@ -76,7 +75,7 @@ module Shakushi
         end
 
         unless content.empty?
-          el = Shakushi::TypeCheck::Parser::Element.new
+          el = Shakushi::TypeCheck::ClassElement.new
           el.name = content
           elements = stack.pop
           elements.push el
@@ -88,7 +87,7 @@ module Shakushi
 
       def self.check_syntax(str)
         msg = "The string to be checked was empty."
-        raise StandardError, msg if str.empty?
+        raise SyntaxError, msg if str.empty?
 
         status = { alt: :unset, col: :unset}
         count = { col: 0 }
@@ -125,10 +124,36 @@ module Shakushi
         raise SyntaxError, msg_ending if sa == :prohibited || sc == :open
         raise SyntaxError, msg_balance if count[:col] > 0
       end
+    end
 
-      class Element
-        attr_accessor :name
-        attr_accessor :collection
+    class ClassElement
+      attr_accessor :name
+      attr_accessor :collection
+
+      def self.match(arg, class_element)
+        col = class_element.collection
+        name = class_element.name
+
+        if name == 'Boolean'
+          element_match = arg.is_a?(TrueClass) || arg.is_a?(FalseClass)
+        else
+          msg = "Class to match #{name} is not defined"
+          raise SyntaxError, msg unless Object.const_defined? name
+          element_match = arg.is_a? Object.const_get(class_element.name)
+        end
+
+        child_match = if col.nil?
+                        true
+                      else
+                        arg.is_a?(Enumerable) && arg.reduce(false) do |memo, a|
+                          col_match = col.reduce(false) do |memo, c|
+                            break true if memo == true
+                            memo = TypeCheck::ClassElement.match a, c
+                          end
+                        end
+                      end
+
+        element_match && child_match
       end
     end
   end
