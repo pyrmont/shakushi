@@ -8,7 +8,7 @@ module Shakushi
         classes = TypeCheck::Parser.parse v
         match = classes.reduce(false) do |memo, c|
           break memo if memo == true
-          memo = TypeCheck::ClassElement.match arg, c
+          memo = c.match arg
         end
         msg = "The object '#{k}' is #{arg.class.name} but expected #{v}"
         raise TypeError, msg unless match
@@ -117,25 +117,22 @@ module Shakushi
       attr_accessor :name
       attr_accessor :collection
 
-      def self.match(arg, class_element)
-        col = class_element.collection
-        name = class_element.name
-
-        if name == 'Boolean'
+      def match(arg)
+        if @name == 'Boolean'
           element_match = arg.is_a?(TrueClass) || arg.is_a?(FalseClass)
         else
-          msg = "Class to match #{name} is not defined"
-          raise SyntaxError, msg unless Object.const_defined? name
-          element_match = arg.is_a? Object.const_get(class_element.name)
+          msg = "Class to match #{@name} is not defined"
+          raise SyntaxError, msg unless Object.const_defined? @name
+          element_match = arg.is_a? Object.const_get(@name)
         end
 
-        child_match = if col.nil?
+        child_match = if @collection.nil?
                         true
                       else
                         arg.is_a?(Enumerable) && arg.reduce(false) do |memo, a|
-                          col_match = col.reduce(false) do |memo, c|
+                          col_match = @collection.reduce(false) do |memo, c|
                             break true if memo == true
-                            memo = TypeCheck::ClassElement.match a, c
+                            memo = c.match a
                           end
                         end
                       end
