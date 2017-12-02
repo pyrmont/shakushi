@@ -9,6 +9,10 @@ h1, h2, h3 {
 	font-family: 'Merriweather Sans';
 }
 
+blockquote, p, ul, ol {
+	font-family: 'Merriweather';
+}
+
 h1 {
 	font-size: 66px;
 	font-weight: 800;
@@ -26,12 +30,11 @@ h1:after {
 	width: 80px;
 }
 
-h2, p, blockquote {
+h2, p, blockquote, ul, ol {
   max-width: 500px;
 }
 
 p {
-	font-family: 'Merriweather';
 	font-size: 16px;
 	font-weight: 500;
 	line-height: 30px;
@@ -55,6 +58,13 @@ blockquote {
 
 blockquote p {
   color: #a18c74;
+}
+
+ol li, ul li {
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 30px;
+	margin-bottom: 36px;
 }
 
 div.archives ul {
