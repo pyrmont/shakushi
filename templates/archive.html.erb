@@ -3,21 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
   <title>Archive: <%= @page_title + ' > ' + @page_year %></title>
+
   <meta name="description" content="">
   <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="/assets/style.css" type="text/css">
+
+  <link href='https://fonts.googleapis.com/css?family=Merriweather+Sans:800' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700' rel='stylesheet' type='text/css'>
+
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
+  <h1><%= @page_title %></h1>
   <% for @entry in @entries %>
-  <div>
+  <div class="entry">
     <h2><a href="<%= @entry.link %>"><%= @entry.title %></a></h2>
     <p><%= @entry.summary %></p>
   </div>
   <% end %>
-  <div>
+  <div class="archives">
     <h3>Archives</h3>
     <ul>
       <% for @year in @years %>
