@@ -1,4 +1,8 @@
-body { background-color: rgb(246, 241, 237); }
+/* Inspiration: http://typespiration.com/design/faded-sunset/ */
+
+body {
+  background-color: rgb(246, 241, 237);
+}
 
 h1, h2, h3 {
 	color: #30231d;
