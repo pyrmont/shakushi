@@ -34,18 +34,23 @@ module Shakushi
       Dir.mkdir @data_dirpath unless File.directory? @data_dirpath
     end
 
-    def filter_files(dirpath:, pattern:)
-      Dir.entries(dirpath).select { |e| pattern === e }.sort.reverse
+    def filter_files(dirpath:, pattern:, are_files: false)
+      if are_files
+        Dir.entries(dirpath).select { |e| pattern === e }
+      else
+        Dir.entries(dirpath).select { |e| pattern === e }.sort.reverse
+      end
     end
 
-    def list_filepaths(limit:)
+    def list_filepaths(limit:, are_files: false)
       dirpaths = filter_files dirpath: @data_dirpath, pattern: /\A\d{4}\z/
       filepaths = dirpaths.reduce(Array.new) do |memo, d|
                   break if memo.length > limit
                   year_dirpath = @data_dirpath + FILE_SEP + d
                   ext_pattern = /#{ATOM_EXT}|#{PODCAST_EXT}|#{RSS_EXT}\z/
                   filenames = filter_files(dirpath: year_dirpath,
-                                           pattern: ext_pattern)
+                                           pattern: ext_pattern,
+                                           are_files: are_files)
                   memo + filenames.map { |f| year_dirpath + FILE_SEP + f }
               end
       (filepaths.length > limit) ? filepaths.slice(0, limit) : filepaths
@@ -54,6 +59,7 @@ module Shakushi
     def restore_entries(limit:)
       filepaths = list_filepaths limit: limit
       entries = filepaths.map { |f| restore_entry filepath: f }
+      entries.sort_by { |e| e.unixtime }.reverse
     end
 
     def restore_entry(filepath:)
@@ -68,10 +74,9 @@ module Shakushi
 
     def save_entry(entry)
       year = entry.date.year.to_s
-      time = entry.unixtime.to_s
       hash = entry.crypto_hash
       dirpath = @data_dirpath + FILE_SEP + year
-      filepath = dirpath + FILE_SEP + time + '-' + hash + @ext[entry.type]
+      filepath = dirpath + FILE_SEP + hash + @ext[entry.type]
       Dir.mkdir dirpath unless File.directory? dirpath
       File.open(filepath, 'w') { |file| file.write(entry.to_s) }
     end
