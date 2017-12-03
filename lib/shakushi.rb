@@ -1,4 +1,4 @@
-require_relative 'typecheck'
+require_relative 'type_check'
 require_relative 'shakushi/xml'
 require_relative 'shakushi/entry'
 require_relative 'shakushi/feed_manager'

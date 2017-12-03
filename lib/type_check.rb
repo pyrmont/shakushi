@@ -129,7 +129,7 @@ module TypeCheck
                       true
                     else
                       arg.is_a?(Enumerable) && arg.reduce(false) do |memo, a|
-                        col_match = @collection.reduce(false) do |memo, c|
+                        @collection.reduce(false) do |col_memo, c|
                           break true if memo == true
                           memo = c.match a
                         end
