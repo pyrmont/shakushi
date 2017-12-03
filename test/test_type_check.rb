@@ -15,14 +15,18 @@ class TypeCheckTest < Minitest::Test
       assert_nil @Parser.check_syntax('String')
     end
 
+    should "complete the syntax check for a collection class" do
+      assert_nil @Parser.check_syntax('Array<String>')
+    end
+
     should "complete the syntax check for multiple classes in a class list" do
       assert_nil @Parser.check_syntax('String|Float')
       assert_nil @Parser.check_syntax('Array|Hash|Float')
       assert_nil @Parser.check_syntax('Array|Set|Point|Regexp')
     end
 
-    should "complete the syntax check for a collection class" do
-      assert_nil @Parser.check_syntax('Array<String>')
+    should "complete the syntax check for recursive collections" do
+      assert_nil @Parser.check_syntax('Array<Array<Array<String>>>')
     end
 
     should "fail the syntax check for a class name ending in <" do
