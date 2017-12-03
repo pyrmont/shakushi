@@ -1,6 +1,3 @@
-require_relative 'xml'
-require_relative 'utility'
-
 module Shakushi
   class FeedManager
     include TypeCheck

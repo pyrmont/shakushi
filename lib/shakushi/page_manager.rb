@@ -1,5 +1,3 @@
-require_relative 'utility'
-
 module Shakushi
   class PageManager
     include TypeCheck
