@@ -12,31 +12,49 @@ class TypeCheckParserTest < Minitest::Test
     end
 
     should "complete the syntax check for a class name" do
-      assert_nil @Parser.check_syntax('String')
+      inputs = ['String']
+      inputs.each do |i|
+        assert_nil @Parser.check_syntax(i)
+      end
     end
 
     should "complete the syntax check for a collection class" do
-      assert_nil @Parser.check_syntax('Array<String>')
+      inputs = ['Array<String>']
+      inputs.each do |i|
+        assert_nil @Parser.check_syntax(i)
+      end
     end
 
     should "complete the syntax check for multiple classes in a class list" do
-      assert_nil @Parser.check_syntax('String|Float')
-      assert_nil @Parser.check_syntax('Array|Hash|Float')
-      assert_nil @Parser.check_syntax('Array|Set|Point|Regexp')
+      inputs = ['String|Float',
+                'Array|Hash|Float',
+                'Array|Set|Point|Regexp']
+      inputs.each do |i|
+        assert_nil @Parser.check_syntax(i)
+      end
     end
 
     should "complete the syntax check for recursive collections" do
-      assert_nil @Parser.check_syntax('Array<Array<Array<String>>>')
+      inputs = ['Array<Array<Array<String>>>']
+      inputs.each do |i|
+        assert_nil @Parser.check_syntax(i)
+      end
     end
 
     should "fail the syntax check for a class name ending in <" do
-      assert_raises(SyntaxError) { @Parser.check_syntax('String<') }
-      assert_raises(SyntaxError) { @Parser.check_syntax('Integer<<') }
-      assert_raises(SyntaxError) { @Parser.check_syntax('Array<Array<') }
+      inputs = ['String<',
+                'Integer<<',
+                'Array<Array<']
+      inputs.each do |i|
+        assert_raises(SyntaxError) { @Parser.check_syntax(i) }
+      end
     end
 
     should "fail the syntax check for an unbalanced <>" do
-      assert_raises(SyntaxError) { @Parser.check_syntax('Array<Array<String>') }
+      inputs = ['Array<Array<String>']
+      inputs.each do |i|
+        assert_raises(SyntaxError) { @Parser.check_syntax(i) }
+      end
     end
   end
 end
