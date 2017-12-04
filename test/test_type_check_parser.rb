@@ -5,7 +5,7 @@ require 'type_check'
 
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
-class TypeCheckTest < Minitest::Test
+class TypeCheckParserTest < Minitest::Test
   context "The TypeCheck Parser" do
     setup do
       @Parser = TypeCheck::Parser
