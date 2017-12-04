@@ -31,6 +31,12 @@ class TypeCheckParserTest < Minitest::Test
 
     should "fail the syntax check for a class name ending in <" do
       assert_raises(SyntaxError) { @Parser.check_syntax('String<') }
+      assert_raises(SyntaxError) { @Parser.check_syntax('Integer<<') }
+      assert_raises(SyntaxError) { @Parser.check_syntax('Array<Array<') }
+    end
+
+    should "fail the syntax check for an unbalanced <>" do
+      assert_raises(SyntaxError) { @Parser.check_syntax('Array<Array<String>') }
     end
   end
 end
