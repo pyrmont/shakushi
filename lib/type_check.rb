@@ -27,15 +27,13 @@ module TypeCheck
         case c
         when '|'
           next if content.empty? # The previous character must have been '>'
-          el = TypeCheck::ClassElement.new
-          el.name = content
+          el = TypeCheck::ClassElement.new name: content
           content = ''
           elements = stack.pop
           elements.push el
           stack.push elements
         when '<'
-          el = TypeCheck::ClassElement.new
-          el.name = content
+          el = TypeCheck::ClassElement.new name: content
           content = ''
           stack.push el
           el_collection = Array.new
@@ -44,8 +42,7 @@ module TypeCheck
           if content.empty? # The previous character must have been '>'.
             parent_collection = stack.pop
           else
-            el = TypeCheck::ClassElement.new
-            el.name = content
+            el = TypeCheck::ClassElement.new name: content
             content = ''
             parent_collection = stack.pop
             parent_collection.push el
@@ -61,8 +58,7 @@ module TypeCheck
       end
 
       unless content.empty?
-        el = TypeCheck::ClassElement.new
-        el.name = content
+        el = TypeCheck::ClassElement.new name: content
         elements = stack.pop
         elements.push el
         stack.push elements
@@ -115,6 +111,18 @@ module TypeCheck
   class ClassElement
     attr_accessor :name
     attr_accessor :collection
+
+    def initialize(name:)
+      msg = 'Argument name was not a string.'
+      raise ArgumentError, msg unless name.is_a? String
+
+      @name = name
+      @collection = nil
+    end
+
+    def ==(comp)
+      @name == comp.name && @collection == comp.collection
+    end
 
     def match(arg)
       if @name == 'Boolean'
