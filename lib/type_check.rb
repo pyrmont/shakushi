@@ -7,7 +7,7 @@ module TypeCheck
       classes = TypeCheck::Parser.parse v
       match = classes.reduce(false) do |memo, c|
         break memo if memo == true
-        memo = c.match arg
+        c.match arg
       end
       msg = "The object '#{k}' is #{arg.class.name} but expected #{v}"
       raise TypeError, msg unless match
@@ -130,8 +130,8 @@ module TypeCheck
                     else
                       arg.is_a?(Enumerable) && arg.reduce(false) do |memo, a|
                         @collection.reduce(false) do |col_memo, c|
-                          break true if memo == true
-                          memo = c.match a
+                          break true if col_memo == true
+                          c.match a
                         end
                       end
                     end
