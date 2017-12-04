@@ -3,7 +3,8 @@ require 'minitest/reporters'
 require 'shoulda/context'
 require 'type_check'
 
-Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+# Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+Minitest::Reporters.use!
 
 class TypeCheckParserTest < Minitest::Test
   context "The method TypeCheck::Parser#check_syntax" do
