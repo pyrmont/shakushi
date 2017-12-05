@@ -84,5 +84,16 @@ class TypeCheckParserTest < Minitest::Test
         assert_equal @Parser.parse(input), outputs[i]
       end
     end
+
+    should "complete for a collection class" do
+      inputs = ['Array<String>']
+      outputs = [[@ClassElement.new(
+                    name: 'Array',
+                    collection: [@ClassElement.new(name: 'String')]
+                  )]]
+      inputs.each_with_index do |input, i|
+        assert_equal @Parser.parse(input), outputs[i]
+      end
+    end
   end
 end

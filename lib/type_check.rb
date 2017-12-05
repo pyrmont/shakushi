@@ -112,12 +112,12 @@ module TypeCheck
     attr_accessor :name
     attr_accessor :collection
 
-    def initialize(name:)
+    def initialize(name:, collection: nil)
       msg = 'Argument name was not a string.'
       raise ArgumentError, msg unless name.is_a? String
 
       @name = name
-      @collection = nil
+      @collection = collection
     end
 
     def ==(comp)
