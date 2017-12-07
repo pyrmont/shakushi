@@ -2,6 +2,9 @@ module TypeCheck
   alias types binding
 
   def check(context, **checks)
+    msg = "The first argument to this method must be of type Binding."
+    raise TypeError, msg unless context.is_a? Binding
+
     checks.each do |k, v|
       arg = context.local_variable_get(k)
       classes = TypeCheck::Parser.parse v
@@ -68,6 +71,8 @@ module TypeCheck
     end
 
     def self.check_syntax(str)
+      msg = "The argument to this method must be of type String."
+      raise TypeError, msg unless str.is_a? String
       msg = "The string to be checked was empty."
       raise SyntaxError, msg if str.empty?
 

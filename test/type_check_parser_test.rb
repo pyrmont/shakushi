@@ -21,11 +21,11 @@ class TypeCheckParserTest < Minitest::Test
                     'String|Array<String|Integer>|Object',
                     'Boolean|Array<String|Hash<Point>|Array<String>>']
 
-  context "The object TypeCheck::Parser" do
+  context "The method TypeCheck::Parser.check_syntax" do
     setup do
       @Parser = @@Parser
       @valid_inputs = @@valid_inputs
-      @invalid_inputs = ['',
+      @invalid_strings = ['',
                          '|',
                          '<',
                          '>',
@@ -37,6 +37,9 @@ class TypeCheckParserTest < Minitest::Test
                          'Integer<<',
                          'Array<Array<',
                          'Array<Array<String>']
+      @invalid_nonstrings = [nil,
+                             Object.new,
+                             Array.new]
     end
 
     should "return nil for valid inputs" do
@@ -45,14 +48,20 @@ class TypeCheckParserTest < Minitest::Test
       end
     end
 
-    should "raise a SyntaxError for invalid inputs" do
-      @invalid_inputs.each do |i|
+    should "raise a TypeError for non-string parameters" do
+      @invalid_nonstrings.each do |i|
+        assert_raises(TypeError) { @Parser.check_syntax(i) }
+      end
+    end
+
+    should "raise a SyntaxError for invalid strings" do
+      @invalid_strings.each do |i|
         assert_raises(SyntaxError) { @Parser.check_syntax(i) }
       end
     end
   end
 
-  context "The method TypeCheck::Parser#parse" do
+  context "The method TypeCheck::Parser.parse" do
     setup do
       @Parser = @@Parser
       @valid_inputs = @@valid_inputs
