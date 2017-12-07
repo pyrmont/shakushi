@@ -28,7 +28,9 @@ class TypeCheckParserTest < Minitest::Test
                          'String|',
                          '<Array',
                          '>Array',
+                         'Array<>',
                          'String<',
+                         'String>',
                          'Integer<<',
                          'Array<Array<',
                          'Array<Array<String>']

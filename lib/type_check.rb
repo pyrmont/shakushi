@@ -118,14 +118,21 @@ module TypeCheck
     attr_accessor :collection
 
     def initialize(name:, collection: nil)
-      msg = 'Argument name was not a string.'
-      raise ArgumentError, msg unless name.is_a? String
+      msg = 'Argument name was not a String.'
+      raise TypeError, msg unless name.is_a? String
+      msg = 'Argument name was an empty string.'
+      raise ArgumentError, msg if name.empty?
+      msg = 'Argument collection was not an Array.'
+      raise TypeError, msg unless (collection.nil? || collection.is_a?(Array))
 
       @name = name
       @collection = collection
     end
 
     def ==(comp)
+      msg = 'Object to be compared must be of type TypeCheck::ClassElement.'
+      raise TypeError, msg unless comp.is_a? TypeCheck::ClassElement
+
       @name == comp.name && @collection == comp.collection
     end
 
