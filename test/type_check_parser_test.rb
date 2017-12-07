@@ -1,10 +1,5 @@
-require 'minitest/autorun'
-require 'minitest/reporters'
-require 'shoulda/context'
+require 'test_helper'
 require 'type_check'
-
-# Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
-Minitest::Reporters.use!
 
 class TypeCheckParserTest < Minitest::Test
   @@Parser = TypeCheck::Parser
