@@ -84,32 +84,41 @@ module TypeCheck
         case c
         when '|'
           raise SyntaxError, msg unless status[:alt] == :allowed
-          status[:alt] = :prohibited
-          status[:col] = :prohibited
+          status = prohibit_all status
         when '<'
           raise SyntaxError, msg unless status[:col] == :allowed
-          status[:alt] = :prohibited
-          status[:col] = :opened
+          status = prohibit_all status, except: { col: :opened }
           count[:col] = count[:col] + 1
         when '>'
           sc = status[:col]
           raise SyntaxError, msg unless count[:col] > 0
           raise SyntaxError, msg unless sc == :allowed || sc == :closed
-          status[:alt] = :allowed
-          status[:col] = :closed
+          status = prohibit_all status, except: { alt: :allowed,
+                                                  col: :closed }
           count[:col] = count[:col] - 1
         else
           raise SyntaxError, msg if status[:col] == :closed
-          status[:alt] = :allowed
-          status[:col] = :allowed
+          status = allow_all status
         end
       end
       msg_ending = "The string '#{str}' ends with an illegal character."
       msg_balance = "The string '#{str}' is missing a closing '>'."
       sa = status[:alt]
       sc = status[:col]
-      raise SyntaxError, msg_ending if sa == :prohibited || sc == :open
+      raise SyntaxError, msg_ending if sa == :prohibited || sc == :opened
       raise SyntaxError, msg_balance if count[:col] > 0
+    end
+
+    def self.prohibit_all(status, except: {})
+      status.transform_values! { |v| v = :prohibited }
+      except.each { |k,v| status[k] = v }
+      status
+    end
+
+    def self.allow_all(status, except: {})
+      status.transform_values! { |v| v = :allowed }
+      except.each { |k,v| status[k] = v }
+      status
     end
   end
 
