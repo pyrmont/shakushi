@@ -16,7 +16,9 @@ class TypeCheckParserTest < Minitest::Test
                        'Array<Integer>|String',
                        'String|Integer|Array<Hash<Object>>',
                        'String|Array<String|Integer>|Object',
-                       'Boolean|Array<String|Hash<Point>|Array<String>>']
+                       'Boolean|Array<String|Hash<Point>|Array<String>>',
+                       'Integer(min: 5)',
+                       'Integer(min: 5, max: 5)']
     end
 
     context "has a class method .check_syntax that" do
@@ -34,7 +36,17 @@ class TypeCheckParserTest < Minitest::Test
                            'String>',
                            'Integer<<',
                            'Array<Array<',
-                           'Array<Array<String>']
+                           'Array<Array<String>',
+                           'Integer()',
+                           'Integer(',
+                           'Integer)',
+                           'Integer(:)',
+                           'Integer(,)',
+                           'Integer( , )',
+                           'Integer(min:)',
+                           'Integer(min 5)',
+                           'Integer(min 5, max: 5)',
+                           'Integer(min: 5 max: 5)']
         @invalid_nonstrings = [nil,
                                Object.new,
                                Array.new]
