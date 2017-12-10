@@ -76,91 +76,88 @@ module TypeCheck
       msg = "The string to be checked was empty."
       raise SyntaxError, msg if str.empty?
 
-      status = { alt: :unset,
-                 col: :unset,
-                 con: :allowed,
-                 atr: :unset,
-                 spc: :unset,
+      counterpart = { lab: '>',
+                      lpr: ')',
+                      constraint: ': or #' }
+
+      status = { bar: :unset,
+                 lab: :unset,
+                 rab: :unset,
+                 lpr: :unset,
+                 rpr: :unset,
+                 hsh: :unset,
+                 cln: :unset,
                  cma: :unset,
-                 mth: :unset }
-      count = { col: 0, con: 0, atr: 0 }
+                 spc: :unset,
+                 oth: :allowed,
+                 end: :unset }
+      count = { lab: 0, lpr: 0, hsh: 0, constraint: 0 }
 
       str.each_char.with_index do |c, i|
         msg = "The string '#{str}' has an error here: #{str[0, i+1]}"
         case c
-        when '|'
-          conditions = [ status[:alt] == :allowed ]
+        when '|' # bar
+          conditions = [ status[:bar] == :allowed ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { con: :allowed }
-        when '<'
-          conditions = [ status[:col] == :allowed ]
+          status = set_all status, :prohibited, except: { oth: :allowed }
+        when '<' # lab
+          conditions = [ status[:lab] == :allowed ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { col: :opened,
-                                                          con: :allowed }
-          count[:col] = count[:col] + 1
-        when '>'
-          conditions = [ count[:col] > 0,
-                         status[:col] == :allowed || status[:col] == :closed ]
+          status = set_all status, :prohibited, except: { oth: :allowed }
+          count[:lab] = count[:lab] + 1
+        when '>' # rab
+          conditions = [ status[:rab] == :allowed, count[:lab] > 0 ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { alt: :allowed,
-                                                          col: :closed,
-                                                          con: :allowed }
-          count[:col] = count[:col] - 1
-        when '('
-          conditions = [ status[:con] == :allowed ]
+          status = set_all status, :prohibited, except: { bar: :allowed,
+                                                          rab: :allowed,
+                                                          lpr: :allowed,
+                                                          end: :allowed }
+          count[:lab] = count[:lab] - 1
+        when '(' # lpr
+          conditions = [ status[:lpr] == :allowed || count[:hsh] == 1 ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { con: :opened,
-                                                          mth: :allowed }
-          count[:con] = count[:con] + 1
-        when ')'
-          conditions = [ count[:con] > 0,
-                         count[:atr] > 0,
-                         status[:con] == :allowed || status[:con] == :closed ]
+          status = set_all status, :prohibited, except: { hsh: :allowed,
+                                                          oth: :allowed }
+          count[:lpr] = count[:lpr] + 1
+          count[:constraint] = count[:constraint] + 1
+        when ')' # rpr
+          conditions = [ status[:rpr] == :allowed, count[:lpr] > 0 ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { alt: :allowed,
-                                                          col: :closed }
-          count[:con] = count[:con] - 1
-          count[:atr] = 0
-        when ':'
-          conditions = [ count[:con] > 0,
-                         status[:atr] == :allowed ]
+          status = set_all status, :prohibited, except: { bar: :allowed,
+                                                          end: :allowed }
+          count[:lpr] = count[:lpr] - 1
+        when '#' # hsh
+          conditions = [ status[:hsh] == :allowed ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { atr: :used,
-                                                          spc: :allowed }
-        when ','
-          conditions = [ count[:con] > 0,
-                         status[:cma] == :allowed ]
+          status = set_all status, :prohibited, except: { oth: :allowed }
+          count[:constraint] = count[:constraint] - 1
+          count[:hsh] = count[:hsh] + 1
+        when ':' # cln
+          conditions = [ status[:cln] == :allowed ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { cma: :used,
-                                                          spc: :allowed }
-#        when '#'
-#          conditions = [ status[:mth] == :allowed ]
-#          raise SyntaxError, msg unless conditions.all?
-#          status = set_all status, :prohibited
-        when ' '
-          conditions = [ count[:con] > 0,
-                         status[:spc] == :allowed && (status[:atr] == :used ||
-                                                      status[:cma] == :used) ]
+          status = set_all status, :prohibited, except: { spc: :allowed }
+          count[:constraint] = count[:constraint] - 1
+        when ',' # cma
+          conditions = [ status[:cma] == :allowed ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { atr: status[:atr],
-                                                          cma: status[:cma] }
-        else
-          conditions = [ status[:col] == :closed ]
-          raise SyntaxError, msg if conditions.all?
-          status = if status[:atr] == :used
-                     count[:atr] = count[:atr] + 1
-                     set_all status, :allowed, except: { atr: :prohibited }
-                   else
-                     set_all status, :allowed
-                   end
+          status = set_all status, :prohibited, except: { spc: :allowed }
+          count[:constraint] = count[:constraint] + 1
+        when ' ' # spc
+          conditions = [ status[:spc] == :allowed ]
+          raise SyntaxError, msg unless conditions.all?
+          status = set_all status, :prohibited, except: { oth: :allowed }
+        else # oth
+          conditions = [ status[:oth] == :allowed ]
+          raise SyntaxError, msg unless conditions.all?
+          status = set_all status, :allowed, except: { spc: :prohibited }
         end
       end
-      char = '>'
       msg_end = "The string '#{str}' ends with an illegal character."
-      msg_bal = "The string '#{str}' is missing a closing '#{char}'."
-      raise SyntaxError, msg_end if status[:alt] == :prohibited ||
-                                    status[:col] == :opened
-      raise SyntaxError, msg_bal if count[:col] > 0
+      raise SyntaxError, msg_end unless status[:end] == :allowed
+
+      char = counterpart[count.find { |k,v| v != 0 }&.first]
+      msg_bal = "The string '#{str}' is missing a #{char}."
+      raise SyntaxError, msg_bal unless count.all? { |k,v| v == 0 }
     end
 
     def self.set_all(status, new_value, except: {})

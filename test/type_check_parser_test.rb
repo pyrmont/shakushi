@@ -17,8 +17,7 @@ class TypeCheckParserTest < Minitest::Test
                        'String|Integer|Array<Hash<Object>>',
                        'String|Array<String|Integer>|Object',
                        'Boolean|Array<String|Hash<Point>|Array<String>>',
-                       'Integer(min: 5)',
-                       'Integer(min: 5, max: 5)']
+                       'Array(len: 5)']
     end
 
     context "has a class method .check_syntax that" do
@@ -37,16 +36,13 @@ class TypeCheckParserTest < Minitest::Test
                            'Integer<<',
                            'Array<Array<',
                            'Array<Array<String>',
-                           'Integer()',
-                           'Integer(',
-                           'Integer)',
-                           'Integer(:)',
-                           'Integer(,)',
-                           'Integer( , )',
-                           'Integer(min:)',
-                           'Integer(min 5)',
-                           'Integer(min 5, max: 5)',
-                           'Integer(min: 5 max: 5)']
+                           'Array<String>>|Array<Array',
+                           'Array(len)',
+                           'Array(len: )',
+                           'Array(len: 5',
+                           'Array((len: 5))',
+                           'Array(len: 5, (len: 5)| len: 5)',
+                           'Array(len: 5, len)']
         @invalid_nonstrings = [nil,
                                Object.new,
                                Array.new]
@@ -66,7 +62,8 @@ class TypeCheckParserTest < Minitest::Test
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          assert_raises(SyntaxError) { @Parser.check_syntax(i) }
+          err = assert_raises(SyntaxError) { @Parser.check_syntax(i) }
+          puts err.message
         end
       end
     end
