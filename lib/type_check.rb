@@ -10,7 +10,7 @@ module TypeCheck
       classes = TypeCheck::Parser.parse v
       match = classes.reduce(false) do |memo, c|
         break memo if memo == true
-        c.match arg
+        c.match? arg
       end
       msg = "The object '#{k}' is #{arg.class.name} but expected #{v}"
       raise TypeError, msg unless match
@@ -19,7 +19,7 @@ module TypeCheck
 
   module Parser
     def self.parse(str)
-      check_syntax(str)
+      validate str
 
       content = ''
       stack = Array.new
@@ -30,13 +30,13 @@ module TypeCheck
         case c
         when '|'
           next if content.empty? # The previous character must have been '>'
-          el = TypeCheck::ClassElement.new name: content
+          el = TypeCheck::TypeElement.new name: content
           content = ''
           elements = stack.pop
           elements.push el
           stack.push elements
         when '<'
-          el = TypeCheck::ClassElement.new name: content
+          el = TypeCheck::TypeElement.new name: content
           content = ''
           stack.push el
           el_collection = Array.new
@@ -45,7 +45,7 @@ module TypeCheck
           if content.empty? # The previous character must have been '>'.
             parent_collection = stack.pop
           else
-            el = TypeCheck::ClassElement.new name: content
+            el = TypeCheck::TypeElement.new name: content
             content = ''
             parent_collection = stack.pop
             parent_collection.push el
@@ -61,7 +61,7 @@ module TypeCheck
       end
 
       unless content.empty?
-        el = TypeCheck::ClassElement.new name: content
+        el = TypeCheck::TypeElement.new name: content
         elements = stack.pop
         elements.push el
         stack.push elements
@@ -70,7 +70,7 @@ module TypeCheck
       stack.pop
     end
 
-    def self.check_syntax(str)
+    def self.validate(str)
       msg = "The argument to this method must be of type String."
       raise TypeError, msg unless str.is_a? String
       msg = "The string to be checked was empty."
@@ -80,94 +80,124 @@ module TypeCheck
                       lpr: ')',
                       constraint: ': or #' }
 
-      status = { bar: :unset,
-                 lab: :unset,
-                 rab: :unset,
-                 lpr: :unset,
-                 rpr: :unset,
-                 hsh: :unset,
-                 cln: :unset,
-                 cma: :unset,
-                 spc: :unset,
-                 oth: :allowed,
-                 end: :unset }
+      state = TypeCheck::Parser::SyntaxState.new(:bar, :lab, :rab, :lpr, :rpr,
+                                                 :hsh, :cln, :cma, :spc, :oth,
+                                                 :end)
+      state.allow(:oth)
+
       count = { lab: 0, lpr: 0, hsh: 0, constraint: 0 }
 
-      str.each_char.with_index do |c, i|
+      i = 0
+      chars = str.chars
+      str_length = chars.size
+
+      while (i < str_length)
         msg = "The string '#{str}' has an error here: #{str[0, i+1]}"
-        case c
+        case chars[i]
         when '|' # bar
-          conditions = [ status[:bar] == :allowed ]
+          conditions = [ state.allow?(:bar) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { oth: :allowed }
+          state.prohibit_all except: { oth: :allowed }
         when '<' # lab
-          conditions = [ status[:lab] == :allowed ]
+          conditions = [ state.allow?(:lab) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { oth: :allowed }
+          state.prohibit_all except: { oth: :allowed }
           count[:lab] = count[:lab] + 1
         when '>' # rab
-          conditions = [ status[:rab] == :allowed, count[:lab] > 0 ]
+          conditions = [ state.allow?(:rab), count[:lab] > 0 ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { bar: :allowed,
-                                                          rab: :allowed,
-                                                          lpr: :allowed,
-                                                          end: :allowed }
+          state.prohibit_all except: { bar: :allowed,
+                                       rab: :allowed,
+                                       lpr: :allowed,
+                                       end: :allowed }
           count[:lab] = count[:lab] - 1
         when '(' # lpr
-          conditions = [ status[:lpr] == :allowed || count[:hsh] == 1 ]
+          conditions = [ state.allow?(:lpr) || count[:hsh] == 1 ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { hsh: :allowed,
-                                                          oth: :allowed }
+          state.prohibit_all except: { hsh: :allowed,
+                                       oth: :allowed }
           count[:lpr] = count[:lpr] + 1
           count[:constraint] = count[:constraint] + 1
         when ')' # rpr
-          conditions = [ status[:rpr] == :allowed, count[:lpr] > 0 ]
+          conditions = [ state.allow?(:rpr), count[:lpr] > 0 ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { bar: :allowed,
-                                                          end: :allowed }
+          state.prohibit_all except: { bar: :allowed,
+                                       end: :allowed }
           count[:lpr] = count[:lpr] - 1
         when '#' # hsh
-          conditions = [ status[:hsh] == :allowed ]
+          conditions = [ state.allow?(:hsh) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { oth: :allowed }
+          state.prohibit_all except: { oth: :allowed }
           count[:constraint] = count[:constraint] - 1
           count[:hsh] = count[:hsh] + 1
         when ':' # cln
-          conditions = [ status[:cln] == :allowed ]
+          conditions = [ state.allow?(:cln) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { spc: :allowed }
+          state.prohibit_all except: { spc: :allowed }
           count[:constraint] = count[:constraint] - 1
         when ',' # cma
-          conditions = [ status[:cma] == :allowed ]
+          conditions = [ state.allow?(:cma) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { spc: :allowed }
+          state.prohibit_all except: { spc: :allowed }
           count[:constraint] = count[:constraint] + 1
         when ' ' # spc
-          conditions = [ status[:spc] == :allowed ]
+          conditions = [ state.allow?(:spc) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :prohibited, except: { oth: :allowed }
+          state.prohibit_all except: { oth: :allowed }
         else # oth
-          conditions = [ status[:oth] == :allowed ]
+          conditions = [ state.allow?(:oth) ]
           raise SyntaxError, msg unless conditions.all?
-          status = set_all status, :allowed, except: { spc: :prohibited }
+          state.allow_all except: { hsh: :prohibited,
+                                    spc: :prohibited }
         end
+
+        i += 1
       end
       msg_end = "The string '#{str}' ends with an illegal character."
-      raise SyntaxError, msg_end unless status[:end] == :allowed
+      raise SyntaxError, msg_end unless state.allow?(:end)
 
       char = counterpart[count.find { |k,v| v != 0 }&.first]
       msg_bal = "The string '#{str}' is missing a #{char}."
       raise SyntaxError, msg_bal unless count.all? { |k,v| v == 0 }
     end
 
-    def self.set_all(status, new_value, except: {})
-      status.transform_values! { |v| v = new_value }
-      except.each { |k,v| status[k] = v }
-      status
+    class SyntaxState
+      def initialize(*state_names)
+        @status = Hash[state_names.map {|s| [s, :prohibited]}]
+      end
+
+      def allow(key)
+        @status[key] = :allowed
+      end
+
+      def allow?(status)
+        @status[status] == :allowed
+      end
+
+      def allow_all(except: {})
+        set_all :allowed, except: except
+      end
+
+      def prohibit(key)
+        @status[key] = :prohibited
+      end
+
+      def prohibit?(status)
+        @status[status] == :prohibited
+      end
+
+      def prohibit_all(except: {})
+        set_all :prohibited, except: except
+      end
+
+      def set_all(status, except: {})
+        @status.transform_values! { |v| v = status }
+        except.each { |k,v| @status[k] = v }
+      end
     end
   end
 
-  class ClassElement
+  class TypeElement
     attr_accessor :name
     attr_accessor :collection
 
@@ -178,39 +208,45 @@ module TypeCheck
       raise ArgumentError, msg if name.empty?
       msg = 'Argument collection was not an Array.'
       raise TypeError, msg unless (collection.nil? || collection.is_a?(Array))
+      msg = 'Argument collection was empty.'
+      raise ArgumentError, msg if collection&.empty?
 
       @name = name
       @collection = collection
     end
 
     def ==(comp)
-      msg = 'Object to be compared must be of type TypeCheck::ClassElement.'
-      raise TypeError, msg unless comp.is_a? TypeCheck::ClassElement
+      msg = 'Object to be compared must be of type TypeCheck::TypeElement.'
+      raise TypeError, msg unless comp.is_a? TypeCheck::TypeElement
 
       @name == comp.name && @collection == comp.collection
     end
 
-    def match(arg)
+    def match?(arg)
+      match_class?(arg) && match_children?(arg)
+    end
+
+    def match_class?(arg)
       if @name == 'Boolean'
-        element_match = arg.is_a?(TrueClass) || arg.is_a?(FalseClass)
+        arg.is_a?(TrueClass) || arg.is_a?(FalseClass)
       else
         msg = "Class to match #{@name} is not defined"
-        raise SyntaxError, msg unless Object.const_defined? @name
-        element_match = arg.is_a? Object.const_get(@name)
+        raise SyntaxError, msg unless Object.const_defined?(@name)
+        arg.is_a? Object.const_get(@name)
       end
+    end
 
-      child_match = if @collection.nil?
-                      true
-                    else
-                      arg.is_a?(Enumerable) && arg.reduce(false) do |memo, a|
-                        @collection.reduce(false) do |col_memo, c|
-                          break true if col_memo == true
-                          c.match a
-                        end
-                      end
-                    end
-
-      element_match && child_match
+    def match_children?(arg)
+      if @collection.nil?
+        true
+      else
+        arg.is_a?(Enumerable) && arg.reduce(false) do |memo, a|
+          @collection.reduce(false) do |col_memo, c|
+            break true if col_memo == true
+            c.match? a
+          end
+        end
+      end
     end
   end
 end

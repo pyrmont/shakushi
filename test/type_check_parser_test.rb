@@ -20,7 +20,7 @@ class TypeCheckParserTest < Minitest::Test
                        'Array(len: 5)']
     end
 
-    context "has a class method .check_syntax that" do
+    context "has a class method .validate that" do
       setup do
         @invalid_strings = ['',
                            '|',
@@ -50,26 +50,26 @@ class TypeCheckParserTest < Minitest::Test
 
       should "return nil for valid inputs" do
         @valid_inputs.each do |v|
-          assert_nil @Parser.check_syntax(v)
+          assert_nil @Parser.validate(v)
         end
       end
 
       should "raise a TypeError for non-string parameters" do
         @invalid_nonstrings.each do |i|
-          assert_raises(TypeError) { @Parser.check_syntax(i) }
+          assert_raises(TypeError) { @Parser.validate(i) }
         end
       end
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          err = assert_raises(SyntaxError) { @Parser.check_syntax(i) }
+          err = assert_raises(SyntaxError) { @Parser.validate(i) }
           puts err.message
         end
       end
     end
 
     context "has a class method .parse that" do
-      should "return an array of TypeCheck::ClassElement for valid inputs" do
+      should "return an array of TypeCheck::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
           assert_equal v, TypeCheckParserTest.reverse_parse(@Parser.parse(v))
         end
