@@ -97,58 +97,52 @@ module TypeCheck
         when '|' # bar
           conditions = [ state.allow?(:bar) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { oth: :allowed }
+          state.prohibit_all except: [ :oth ]
         when '<' # lab
           conditions = [ state.allow?(:lab) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { oth: :allowed }
+          state.prohibit_all except: [ :oth ]
           count[:lab] = count[:lab] + 1
         when '>' # rab
           conditions = [ state.allow?(:rab), count[:lab] > 0 ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { bar: :allowed,
-                                       rab: :allowed,
-                                       lpr: :allowed,
-                                       end: :allowed }
+          state.prohibit_all except: [ :bar, :rab, :lpr, :end ]
           count[:lab] = count[:lab] - 1
         when '(' # lpr
           conditions = [ state.allow?(:lpr) || count[:hsh] == 1 ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { hsh: :allowed,
-                                       oth: :allowed }
+          state.prohibit_all except: [ :hsh, :oth ]
           count[:lpr] = count[:lpr] + 1
           count[:constraint] = count[:constraint] + 1
         when ')' # rpr
           conditions = [ state.allow?(:rpr), count[:lpr] > 0 ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { bar: :allowed,
-                                       end: :allowed }
+          state.prohibit_all except: [ :bar, :end ]
           count[:lpr] = count[:lpr] - 1
         when '#' # hsh
           conditions = [ state.allow?(:hsh) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { oth: :allowed }
+          state.prohibit_all except: [ :oth ]
           count[:constraint] = count[:constraint] - 1
           count[:hsh] = count[:hsh] + 1
         when ':' # cln
           conditions = [ state.allow?(:cln) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { spc: :allowed }
+          state.prohibit_all except: [ :spc ]
           count[:constraint] = count[:constraint] - 1
         when ',' # cma
           conditions = [ state.allow?(:cma) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { spc: :allowed }
+          state.prohibit_all except: [ :spc ]
           count[:constraint] = count[:constraint] + 1
         when ' ' # spc
           conditions = [ state.allow?(:spc) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: { oth: :allowed }
+          state.prohibit_all except: [ :oth ]
         else # oth
           conditions = [ state.allow?(:oth) ]
           raise SyntaxError, msg unless conditions.all?
-          state.allow_all except: { hsh: :prohibited,
-                                    spc: :prohibited }
+          state.allow_all except: [ :hsh, :spc ]
         end
 
         i += 1
@@ -174,8 +168,8 @@ module TypeCheck
         @status[status] == :allowed
       end
 
-      def allow_all(except: {})
-        set_all :allowed, except: except
+      def allow_all(except: [])
+        set_all :allowed, except: { exceptions: except, status: :prohibited }
       end
 
       def prohibit(key)
@@ -186,13 +180,13 @@ module TypeCheck
         @status[status] == :prohibited
       end
 
-      def prohibit_all(except: {})
-        set_all :prohibited, except: except
+      def prohibit_all(except: [])
+        set_all :prohibited, except: { exceptions: except, status: :allowed }
       end
 
       def set_all(status, except: {})
         @status.transform_values! { |v| v = status }
-        except.each { |k,v| @status[k] = v }
+        except[:exceptions].each { |k| @status[k] = except[:status] }
       end
     end
   end
