@@ -253,28 +253,8 @@ module TypeCheck
         @status[status] == :allowed
       end
 
-      def any_allowed?()
-        @status.has_value?(:allowed)
-      end
-
       def count(key)
         @counter[key]
-      end
-
-      def disable(key)
-        @status[key] = :disabled
-      end
-
-      def disabled?(key)
-        @status[key] == :disabled
-      end
-
-      def enable(key)
-        @status[key] = :enabled
-      end
-
-      def enabled?(key)
-        @status[key] == :enabled
       end
 
       def decrement(key)
