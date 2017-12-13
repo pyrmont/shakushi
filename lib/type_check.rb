@@ -65,6 +65,12 @@ module TypeCheck
           stack.push el
           cst_collection = Array.new
           stack.push cst_collection
+        when '#'
+          cst = TypeCheck::TypeElement::Constraint.new
+          content = ''
+          cst_collection = stack.pop
+          cst_collection.push cst
+          stack.push cst_collection
         when ':'
           cst = TypeCheck::TypeElement::Constraint.new name: content
           content = ''
@@ -357,31 +363,38 @@ module TypeCheck
     end
 
     class Constraint
+      METHOD = '#'
+
       attr_accessor :name
       attr_reader :value
 
-      def initialize(name:, value: nil)
+      def initialize(name: nil, value: nil)
         msg = 'Argument name was not a String.'
-        raise TypeError, msg unless name.is_a? String
+        raise TypeError, msg unless name.nil? || name.is_a?(String)
         msg = 'Argument name was an empty string.'
-        raise ArgumentError, msg if name.empty?
+        raise ArgumentError, msg if name&.empty?
 
-        @name = name
-        @value = nil
+        @name = (name.nil?) ? Constraint::METHOD : name
+        @value = value
       end
 
       def to_s
+        name_string = (@name == Constraint::METHOD) ? '#' : @name + ': '
         value_string = case @name
+                       when Constraint::METHOD
+                         @value
                        when 'format'
                          @value.inspect
                        when 'len', 'max', 'min'
                          @value.to_s
                        end
-        @name + ': ' + value_string
+        name_string + value_string
       end
 
       def value=(v)
         case @name
+        when Constraint::METHOD
+          @value = v
         when 'format'
           msg = 'The value is not a regular expression.'
           raise SyntaxError, msg unless v[0] == '/' && v[-1] == '/'
@@ -390,13 +403,13 @@ module TypeCheck
           msg = 'The value is not an Integer.'
           raise SyntaxError, msg unless v == v.to_i.to_s
           @value = v.to_i
-        else
-          @value = v
         end
       end
 
       def within?(arg)
         case @name
+        when Constraint::METHOD
+          arg.respond_to? @value
         when 'format'
           arg.is_a? String && arg =~ @value
         when 'len'

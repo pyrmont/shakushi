@@ -18,7 +18,8 @@ class TypeCheckParserTest < Minitest::Test
                        'String|Array<String|Integer>|Object',
                        'Boolean|Array<String|Hash<Point>|Array<String>>',
                        'Array(len: 5)',
-                       'String(format: /woo/)'
+                       'String(format: /woo/)',
+                       'String(#size)'
                      ]
     end
 
