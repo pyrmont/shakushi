@@ -3,7 +3,7 @@ require_relative 'parser/syntax_state'
 module TypeCheck
   module Parser
     def self.parse(str)
-      validate str
+      TypeCheck::Parser.validate str
 
       content = ''
       stack = Array.new
