@@ -17,7 +17,9 @@ class TypeCheckParserTest < Minitest::Test
                        'String|Integer|Array<Hash<Object>>',
                        'String|Array<String|Integer>|Object',
                        'Boolean|Array<String|Hash<Point>|Array<String>>',
-                       'Array(len: 5)']
+                       'Array(len: 5)',
+                       'String(format: /woo/)'
+                     ]
     end
 
     context "has a class method .validate that" do
@@ -42,7 +44,10 @@ class TypeCheckParserTest < Minitest::Test
                            'Array(len: 5',
                            'Array((len: 5))',
                            'Array(len: 5, (len: 5)| len: 5)',
-                           'Array(len: 5, len)']
+                           'Array(len: 5, len)',
+                           'String(format: /)',
+                           'String(format: //)',
+                           'String(format: /a/th)']
         @invalid_nonstrings = [nil,
                                Object.new,
                                Array.new]

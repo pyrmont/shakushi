@@ -76,8 +76,8 @@ module TypeCheck
       msg = "The string to be checked was empty."
       raise SyntaxError, msg if str.empty?
 
-      status_array = [ :bar, :lab, :rab, :lpr, :rpr,:hsh, :cln, :cma, :spc,
-                       :oth, :end ]
+      status_array = [ :bar, :lab, :rab, :lpr, :rpr,:hsh, :cln, :sls, :cma,
+                       :spc, :oth, :end ]
       counter_array = [ [ :angle, :paren, :const ],
                         { angle: '>', paren: ')', const: ":' or '#" } ]
       state = TypeCheck::Parser::SyntaxState.new(status_array, counter_array)
@@ -126,6 +126,11 @@ module TypeCheck
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :spc ]
           state.decrement(:const)
+        when '/' #sls
+          conditions = [ state.allowed?(:sls) ]
+          raise SyntaxError, msg unless conditions.all?
+          i = TypeCheck::Parser.validate_regex(str, start: i+1)
+          state.prohibit_all except: [ :rpr, :cma ]
         when ',' # cma
           conditions = [ state.allowed?(:cma) ]
           raise SyntaxError, msg unless conditions.all?
@@ -134,7 +139,7 @@ module TypeCheck
         when ' ' # spc
           conditions = [ state.allowed?(:spc) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: [ :oth ]
+          state.prohibit_all except: [ :sls, :oth ]
         else # oth
           conditions = [ state.allowed?(:oth) ]
           raise SyntaxError, msg unless conditions.all?
@@ -150,11 +155,56 @@ module TypeCheck
       raise SyntaxError, msg_bal unless missing.size == 0
     end
 
+    def self.validate_regex(str, start: 0)
+      status_array = [ :bsl, :sls, :opt, :oth ]
+      counter_array = [ [ :backslash ], { backslash: '/' } ]
+
+      state = SyntaxState.new(status_array, counter_array)
+      state.prohibit_all except: [ :bsl, :oth ]
+      finish = start
+
+      str[start, str.length-start].each_char.with_index(start) do |c, i|
+        if state.gtz?(:backslash) # The preceding character was a backslash.
+          state.decrement(:backslash)
+          next
+        end
+
+        msg = "The string '#{str}' has an error here: #{str[0, i+1]}"
+
+        case c
+        when 'i', 'o', 'x', 'm', 'u', 'e', 's', 'n'
+          next # We're either in the regex or in the options that follow.
+        when '/'
+          raise SyntaxError, msg unless state.allowed?(:sls)
+          state.prohibit_all except: [ :opt ]
+        when '\\'
+          raise SyntaxError, msg unless state.allowed?(:bsl)
+          state.increment(:backslash)
+        when ',', ')' # We're at the end of the constraint.
+          finish = i
+          break unless state.allowed?(:oth)
+        else
+          raise SyntaxError, msg unless state.allowed?(:oth)
+          state.allow_all
+        end
+      end
+
+      msg = "The string '#{str}' is missing a '/'."
+      raise SyntaxError, msg if finish == start
+
+      finish - 1
+    end
+
     class SyntaxState
-      def initialize(state_names, counter_names_and_closers)
+      def initialize(state_names, counter_names_and_closers = nil)
         @status = Hash[state_names.map { |s| [s, :prohibited] }]
-        @counter = Hash[counter_names_and_closers[0].map { |c| [c, 0] }]
-        @closers = counter_names_and_closers[1]
+        if counter_names_and_closers.nil?
+          @counter = Array.new
+          @closers = Array.new
+        else
+          @counter = Hash[counter_names_and_closers[0].map { |c| [c, 0] }]
+          @closers = counter_names_and_closers[1]
+        end
       end
 
       def allow(key)
@@ -169,8 +219,28 @@ module TypeCheck
         @status[status] == :allowed
       end
 
+      def any_allowed?()
+        @status.has_value?(:allowed)
+      end
+
       def count(key)
         @counter[key]
+      end
+
+      def disable(key)
+        @status[key] = :disabled
+      end
+
+      def disabled?(key)
+        @status[key] == :disabled
+      end
+
+      def enable(key)
+        @status[key] = :enabled
+      end
+
+      def enabled?(key)
+        @status[key] == :enabled
       end
 
       def decrement(key)
