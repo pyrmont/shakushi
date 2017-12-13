@@ -180,9 +180,9 @@ module TypeCheck
         when '\\'
           raise SyntaxError, msg unless state.allowed?(:bsl)
           state.increment(:backslash)
-        when ',', ')' # We're at the end of the constraint.
+        when ',', ')'
           finish = i
-          break unless state.allowed?(:oth)
+          break unless state.allowed?(:oth) # The regex has ended.
         else
           raise SyntaxError, msg unless state.allowed?(:oth)
           state.allow_all
