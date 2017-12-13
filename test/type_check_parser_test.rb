@@ -67,8 +67,7 @@ class TypeCheckParserTest < Minitest::Test
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          err = assert_raises(SyntaxError) { @Parser.validate(i) }
-          puts err.message
+          assert_raises(SyntaxError) { @Parser.validate(i) }
         end
       end
     end
@@ -89,6 +88,18 @@ class TypeCheckParserTest < Minitest::Test
       memo = if a.collection.is_a?(Array)
                inner = TypeCheckParserTest.reverse_parse(a.collection)
                memo + '<' + inner + '>'
+             else
+               memo
+             end
+      memo = if a.constraints.is_a?(Array)
+               inner = a.constraints.reduce(nil) do |cst_memo, c|
+                 if cst_memo.nil?
+                   cst_memo = c.to_s
+                 else
+                   cst_memo = cst_memo + ', ' + c.to_s
+                 end
+               end
+               memo + '(' + inner + ')'
              else
                memo
              end

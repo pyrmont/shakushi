@@ -55,6 +55,40 @@ module TypeCheck
           elements = stack.pop
           elements.push parent_el
           stack.push elements
+        when '('
+          if content.empty? # The previous character must have been '>'.
+            el = stack.pop
+          else
+            el = TypeCheck::TypeElement.new name: content
+            content = ''
+          end
+          stack.push el
+          cst_collection = Array.new
+          stack.push cst_collection
+        when ':'
+          cst = TypeCheck::TypeElement::Constraint.new name: content
+          content = ''
+          cst_collection = stack.pop
+          cst_collection.push cst
+          stack.push cst_collection
+        when ','
+          cst_collection = stack.pop
+          cst = cst_collection.pop
+          cst.value = content.strip
+          content = ''
+          cst_collection.push cst
+          stack.push cst_collection
+        when ')'
+          cst_collection = stack.pop
+          cst = cst_collection.pop
+          cst.value = content.strip
+          content = ''
+          cst_collection.push cst
+          el = stack.pop
+          el.constraints = cst_collection
+          elements = stack.pop
+          elements.push el
+          stack.push elements
         else
           content = content + c
         end
@@ -287,8 +321,9 @@ module TypeCheck
   class TypeElement
     attr_accessor :name
     attr_accessor :collection
+    attr_accessor :constraints
 
-    def initialize(name:, collection: nil)
+    def initialize(name:, collection: nil, constraints: nil)
       msg = 'Argument name was not a String.'
       raise TypeError, msg unless name.is_a? String
       msg = 'Argument name was an empty string.'
@@ -297,9 +332,14 @@ module TypeCheck
       raise TypeError, msg unless (collection.nil? || collection.is_a?(Array))
       msg = 'Argument collection was empty.'
       raise ArgumentError, msg if collection&.empty?
+      msg = 'Argument constraints was not an Array.'
+      raise TypeError, msg unless (constraints.nil? || constraints.is_a?(Array))
+      msg = 'Argument constraints was empty.'
+      raise ArgumentError, msg if constraints&.empty?
 
       @name = name
       @collection = collection
+      @constraints = constraints
     end
 
     def ==(comp)
@@ -332,6 +372,59 @@ module TypeCheck
             break true if col_memo == true
             c.match? a
           end
+        end
+      end
+    end
+
+    class Constraint
+      attr_accessor :name
+      attr_reader :value
+
+      def initialize(name:, value: nil)
+        msg = 'Argument name was not a String.'
+        raise TypeError, msg unless name.is_a? String
+        msg = 'Argument name was an empty string.'
+        raise ArgumentError, msg if name.empty?
+
+        @name = name
+        @value = nil
+      end
+
+      def to_s
+        value_string = case @name
+                       when 'format'
+                         @value.inspect
+                       when 'len', 'max', 'min'
+                         @value.to_s
+                       end
+        @name + ': ' + value_string
+      end
+
+      def value=(v)
+        case @name
+        when 'format'
+          msg = 'The value is not a regular expression.'
+          raise SyntaxError, msg unless v[0] == '/' && v[-1] == '/'
+          @value = Regexp.new v[1, v.length-2]
+        when 'len', 'max', 'min'
+          msg = 'The value is not an Integer.'
+          raise SyntaxError, msg unless v == v.to_i.to_s
+          @value = v.to_i
+        else
+          @value = v
+        end
+      end
+
+      def within?(arg)
+        case @name
+        when 'format'
+          arg.is_a? String && arg =~ @value
+        when 'len'
+          arg.respond_to? 'size' && arg.size == @value
+        when 'max'
+          arg.respond_to? '<=' && arg <= @value
+        when 'min'
+          arg.respond_to? '>=' && arg >= @value
         end
       end
     end
