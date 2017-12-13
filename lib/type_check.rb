@@ -166,7 +166,7 @@ module TypeCheck
       str[start, str.length-start].each_char.with_index(start) do |c, i|
         if state.gtz?(:backslash) # The preceding character was a backslash.
           state.decrement(:backslash)
-          next
+          next # Any character after a backslash is allowed.
         end
 
         msg = "The string '#{str}' has an error here: #{str[0, i+1]}"
