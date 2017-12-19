@@ -82,9 +82,20 @@ class TypeCheckParserTest < Minitest::Test
     end
 
     context "has a class method .parse that" do
+      setup do
+        @invalid_strings = ['String(len: 5, len: 5)']
+      end
+
       should "return an array of TypeCheck::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
           assert_equal v, TypeCheckParserTest.reverse_parse(@Parser.parse(v))
+        end
+      end
+
+      should "raise a SyntaxError for invalid strings" do
+        @invalid_strings.each do |i|
+          error = assert_raises(SyntaxError) { @Parser.parse(i) }
+#          puts error.message
         end
       end
     end

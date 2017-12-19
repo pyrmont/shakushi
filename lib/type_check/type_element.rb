@@ -4,7 +4,7 @@ module TypeCheck
   class TypeElement
     attr_accessor :name
     attr_accessor :children
-    attr_accessor :constraints
+    attr_reader :constraints
 
     def initialize(name:, children: nil, constraints: nil)
       msg = 'Argument name was not a String.'
@@ -30,6 +30,20 @@ module TypeCheck
       raise TypeError, msg unless comp.is_a? TypeCheck::TypeElement
 
       @name == comp.name && @children == comp.children
+    end
+
+    def constraints=(csts)
+      names = Hash.new
+      csts.each do |c|
+        msg = 'Contraints must have unique names.'
+        raise SyntaxError, msg if names.key?(c.name)
+        if c.name == TypeCheck::TypeElement::Constraint::METHOD
+          names['#' + c.value] = true
+        else
+          names[c.name] = true
+        end
+      end
+      @constraints = csts
     end
 
     def match?(arg)
