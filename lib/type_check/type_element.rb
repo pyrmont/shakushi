@@ -33,6 +33,9 @@ module TypeCheck
     end
 
     def constraints=(csts)
+      msg = 'Argument csts was not an Array.'
+      raise TypeError, msg unless csts.is_a? Array
+
       names = Hash.new
       csts.each do |c|
         msg = 'Contraints must have unique names.'
