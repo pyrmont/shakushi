@@ -7,7 +7,7 @@ module TypeCheck
       attr_reader :value
 
       def initialize(name: nil, value: nil)
-        msg = 'Argument name was not a String.'
+        msg = 'Argument name was not nil or a String.'
         raise TypeError, msg unless name.nil? || name.is_a?(String)
         msg = 'Argument name was an empty string.'
         raise ArgumentError, msg if name&.empty?

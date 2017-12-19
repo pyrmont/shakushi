@@ -11,12 +11,12 @@ module TypeCheck
     checks.each do |k, v|
       arg = context.local_variable_get(k)
       classes = TypeCheck::Parser.parse v
-      match = classes.reduce(false) do |memo, c|
+      is_match = classes.reduce(false) do |memo, c|
         break memo if memo == true
         c.match? arg
       end
       msg = "The object '#{k}' is #{arg.class.name} but expected #{v}"
-      raise TypeError, msg unless match
+      raise TypeError, msg unless is_match
     end
   end
 end

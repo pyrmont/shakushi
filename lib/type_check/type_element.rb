@@ -64,17 +64,15 @@ module TypeCheck
     end
 
     def match_children?(arg)
-      if @children.nil?
-        true
-      else
-        unless arg.is_a? Enumerable
-          false
-        else
-          arg.all? do |a|
-            @children.any? do |c|
-              c.match? a
-            end
-          end
+      self_childless = @children.nil?
+      arg_childless = !arg.is_a?(Enumerable) || arg.count == 0
+      return true if self_childless && arg_childless
+      return false if self_childless && !arg_childless
+      return false if !self_childless && arg_childless
+
+      arg.all? do |a|
+        @children.any? do |c|
+          c.match? a
         end
       end
     end

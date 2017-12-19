@@ -39,19 +39,69 @@ class TypeCheckTypeElementTest < Minitest::Test
       setup do
         @valid_name = 'Test'
         @other_valid_name = 'Test 2'
-        @ce = TypeCheck::TypeElement.new(name: @valid_name)
+        @te = TypeCheck::TypeElement.new(name: @valid_name)
       end
 
       should "return true or false for valid input" do
-        comp = TypeCheck::TypeElement.new(name: @other_valid_name)
-        assert_equal (@ce == comp), false
+        diff_comp = TypeCheck::TypeElement.new(name: @other_valid_name)
+        same_comp = TypeCheck::TypeElement.new(name: @valid_name)
+        assert_equal (@te == diff_comp), false
+        assert_equal (@te == same_comp), true
       end
 
       should "raise a TypeError when the object to be compared is wrong type" do
         invalid_comparisons = [nil, Object.new, Array.new]
         invalid_comparisons.each do |i|
-          assert_raises(TypeError) { @ce == i }
+          assert_raises(TypeError) { @te == i }
         end
+      end
+    end
+
+    context "has an instance method #constraint= that" do
+      setup do
+        @te = TypeCheck::TypeElement.new(name: 'String')
+      end
+
+      should "set the constraints for valid input" do
+        csts = [ TypeCheck::TypeElement::Constraint.new(name: 'min', value: 1),
+                 TypeCheck::TypeElement::Constraint.new(name: 'max', value: 5) ]
+        @te.constraints = csts
+        assert_equal (@te.constraints == csts), true
+      end
+
+      should "raise a TypeError when the argument is not an Array" do
+        invalid_comparisons = [nil, Object.new, Hash.new]
+        invalid_comparisons.each do |i|
+          assert_raises(TypeError) { @te.constraints = i }
+        end
+      end
+
+      should "raise a SyntaxError when there duplicate constraints" do
+        csts = [ TypeCheck::TypeElement::Constraint.new(name: 'min', value: 1),
+                 TypeCheck::TypeElement::Constraint.new(name: 'min', value: 5) ]
+        assert_raises(SyntaxError) { @te.constraints = csts }
+      end
+    end
+
+    context "has an instance method #match? that" do
+      setup do
+        csts = [ TypeCheck::TypeElement::Constraint.new(name: 'min', value: 1),
+                 TypeCheck::TypeElement::Constraint.new(name: 'max', value: 5) ]
+        children = [ TypeCheck::TypeElement.new(name: 'String',
+                                                constraints: csts) ]
+        @te = TypeCheck::TypeElement.new(name: 'Array',
+                                         children: children,
+                                         constraints: csts)
+      end
+
+      should "return true for a match" do
+        arg = [ 'Test' ]
+        assert (@te.match?(arg) == true)
+      end
+
+      should "return false for a failed match" do
+        arg = [ 3 ]
+        assert (@te.match?(arg) == false)
       end
     end
   end
