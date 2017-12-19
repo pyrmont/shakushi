@@ -24,10 +24,6 @@ module TypeCheck
         @status[status] == :allowed
       end
 
-      def count(key)
-        @counter[key]
-      end
-
       def decrement(key)
         @counter[key] -= 1
       end
@@ -65,6 +61,10 @@ module TypeCheck
         @counter.reduce(Array.new) do |memo, c|
           (c[1] == 0) ? memo : memo.push(@closers[c[0]])
         end
+      end
+
+      def zero?(key)
+        @counter[key] == 0
       end
     end
   end

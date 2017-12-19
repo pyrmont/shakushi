@@ -130,7 +130,7 @@ module TypeCheck
           state.prohibit_all except: [ :bar, :rab, :lpr, :end ]
           state.decrement(:angle)
         when '(' # lpr
-          conditions = [ state.allowed?(:lpr) ]
+          conditions = [ state.allowed?(:lpr), state.zero?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :hsh, :oth ]
           state.increment(:paren)
@@ -141,27 +141,27 @@ module TypeCheck
           state.prohibit_all except: [ :bar, :end ]
           state.decrement(:paren)
         when '#' # hsh
-          conditions = [ state.allowed?(:hsh) ]
+          conditions = [ state.allowed?(:hsh), state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :oth ]
           state.decrement(:const)
         when ':' # cln
-          conditions = [ state.allowed?(:cln) ]
+          conditions = [ state.allowed?(:cln), state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :spc ]
           state.decrement(:const)
         when '/' #sls
-          conditions = [ state.allowed?(:sls) ]
+          conditions = [ state.allowed?(:sls), state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           i = TypeCheck::Parser.validate_regex(str, start: i+1)
           state.prohibit_all except: [ :rpr, :cma ]
         when ',' # cma
-          conditions = [ state.allowed?(:cma) ]
+          conditions = [ state.allowed?(:cma), state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :spc ]
           state.increment(:const)
         when ' ' # spc
-          conditions = [ state.allowed?(:spc) ]
+          conditions = [ state.allowed?(:spc), state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :sls, :oth ]
         else # oth

@@ -17,8 +17,6 @@ module TypeCheck
       end
 
       def to_s
-        puts "The name is '#{@name}'."
-
         name_string = (@name == Constraint::METHOD) ? '#' : @name + ': '
         value_string = case @name
                        when Constraint::METHOD
@@ -27,6 +25,8 @@ module TypeCheck
                          @value.inspect
                        when 'len', 'max', 'min'
                          @value.to_s
+                       else
+                         @value
                        end
         name_string + value_string
       end

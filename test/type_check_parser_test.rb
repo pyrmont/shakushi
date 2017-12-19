@@ -30,6 +30,10 @@ class TypeCheckParserTest < Minitest::Test
                            '|',
                            '<',
                            '>',
+                           'Stri,ng',
+                           'Stri:ng',
+                           'Stri/ng',
+                           'Stri ng',
                            '|String',
                            'String|',
                            '<Array',
@@ -49,7 +53,9 @@ class TypeCheckParserTest < Minitest::Test
                            'Array(len: 5, len)',
                            'String(format: /)',
                            'String(format: //)',
-                           'String(format: /a/th)']
+                           'String(format: /a/th)',
+                           'Integer(mi,n: 5)',
+                           'Integer((min: 5)']
         @invalid_nonstrings = [nil,
                                Object.new,
                                Array.new]
@@ -69,7 +75,8 @@ class TypeCheckParserTest < Minitest::Test
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          assert_raises(SyntaxError) { @Parser.validate(i) }
+          error = assert_raises(SyntaxError) { @Parser.validate(i) }
+#          puts error.message
         end
       end
     end
