@@ -35,7 +35,7 @@ module TypeCheck
             parent_collection.push el
           end
           parent_el = stack.pop
-          parent_el.collection = parent_collection
+          parent_el.children = parent_collection
           elements = stack.pop
           elements.push parent_el
           stack.push elements
@@ -56,7 +56,7 @@ module TypeCheck
           cst_collection.push cst
           stack.push cst_collection
         when ':'
-          cst = TypeCheck::TypeElement::Constraint.new name: content
+          cst = TypeCheck::TypeElement::Constraint.new name: content.strip
           content = ''
           cst_collection = stack.pop
           cst_collection.push cst

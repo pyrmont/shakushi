@@ -17,6 +17,8 @@ module TypeCheck
       end
 
       def to_s
+        puts "The name is '#{@name}'."
+
         name_string = (@name == Constraint::METHOD) ? '#' : @name + ': '
         value_string = case @name
                        when Constraint::METHOD

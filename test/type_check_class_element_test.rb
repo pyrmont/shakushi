@@ -26,10 +26,10 @@ class TypeCheckTypeElementTest < Minitest::Test
           assert_raises(TypeError) { TypeCheck::TypeElement.new(name: i) }
         end
 
-        invalid_collections = [Object.new, String.new]
-        invalid_collections.each do |i|
+        invalid_children = [Object.new, String.new]
+        invalid_children.each do |i|
           assert_raises(TypeError) do
-            TypeCheck::TypeElement.new(name: @valid_name, collection: i)
+            TypeCheck::TypeElement.new(name: @valid_name, children: i)
           end
         end
       end

@@ -19,7 +19,8 @@ class TypeCheckParserTest < Minitest::Test
                        'Boolean|Array<String|Hash<Point>|Array<String>>',
                        'Array(len: 5)',
                        'String(format: /woo/)',
-                       'String(#size)'
+                       'String(#size)',
+                       'Integer(min: 1, max: 10)'
                      ]
     end
 
@@ -86,8 +87,8 @@ class TypeCheckParserTest < Minitest::Test
     array.reduce(nil) do |memo, a|
       memo = (memo.nil?) ? '' : memo + '|'
       memo = memo + a.name
-      memo = if a.collection.is_a?(Array)
-               inner = TypeCheckParserTest.reverse_parse(a.collection)
+      memo = if a.children.is_a?(Array)
+               inner = TypeCheckParserTest.reverse_parse(a.children)
                memo + '<' + inner + '>'
              else
                memo
