@@ -63,12 +63,6 @@ module TypeCheck
       end
     end
 
-    def match_constraints?(arg)
-      @constraints.all? do |c|
-        c.constrain?(arg)
-      end
-    end
-
     def match_children?(arg)
       self_childless = @children.nil?
       arg_childless = !arg.is_a?(Enumerable) || arg.count == 0
@@ -80,6 +74,12 @@ module TypeCheck
         @children.any? do |c|
           c.match? a
         end
+      end
+    end
+
+    def match_constraints?(arg)
+      @constraints.all? do |c|
+        c.constrain?(arg)
       end
     end
   end

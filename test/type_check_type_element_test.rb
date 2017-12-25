@@ -21,12 +21,12 @@ class TypeCheckTypeElementTest < Minitest::Test
       end
 
       should "raise a TypeError when initialised with wrong typed arguments" do
-        invalid_names = [nil, Object.new, Array]
+        invalid_names = [ nil, Object.new, Array ]
         invalid_names.each do |i|
           assert_raises(TypeError) { TypeCheck::TypeElement.new(name: i) }
         end
 
-        invalid_children = [Object.new, String.new]
+        invalid_children = [ Object.new, String.new ]
         invalid_children.each do |i|
           assert_raises(TypeError) do
             TypeCheck::TypeElement.new(name: @valid_name, children: i)
@@ -50,7 +50,7 @@ class TypeCheckTypeElementTest < Minitest::Test
       end
 
       should "raise a TypeError when the object to be compared is wrong type" do
-        invalid_comparisons = [nil, Object.new, Array.new]
+        invalid_comparisons = [ nil, Object.new, Array.new ]
         invalid_comparisons.each do |i|
           assert_raises(TypeError) { @te == i }
         end
@@ -70,7 +70,7 @@ class TypeCheckTypeElementTest < Minitest::Test
       end
 
       should "raise a TypeError when the argument is not an Array" do
-        invalid_comparisons = [nil, Object.new, Hash.new]
+        invalid_comparisons = [ nil, Object.new, Hash.new ]
         invalid_comparisons.each do |i|
           assert_raises(TypeError) { @te.constraints = i }
         end
