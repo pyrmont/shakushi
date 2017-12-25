@@ -50,7 +50,7 @@ module TypeCheck
     end
 
     def match?(arg)
-      match_class?(arg) && match_children?(arg)
+      match_class?(arg) && match_constraints?(arg) &&  match_children?(arg)
     end
 
     def match_class?(arg)
@@ -60,6 +60,12 @@ module TypeCheck
         msg = "Class to match #{@name} is not defined"
         raise SyntaxError, msg unless Object.const_defined?(@name)
         arg.is_a? Object.const_get(@name)
+      end
+    end
+
+    def match_constraints?(arg)
+      @constraints.all? do |c|
+        c.constrain?(arg)
       end
     end
 

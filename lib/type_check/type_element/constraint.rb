@@ -46,18 +46,26 @@ module TypeCheck
         end
       end
 
-      def within?(arg)
+      def constrain?(arg)
         case @name
         when Constraint::METHOD
           arg.respond_to? @value
         when 'format'
-          arg.is_a? String && arg =~ @value
+          arg.is_a?(String) && arg =~ @value
         when 'len'
-          arg.respond_to? 'size' && arg.size == @value
+          arg.respond_to?('size') && arg.size == @value
         when 'max'
-          arg.respond_to? '<=' && arg <= @value
+          if arg.is_a? Numeric
+            arg <= @value
+          else
+            arg.respond_to?('size') && arg.size <= @value
+          end
         when 'min'
-          arg.respond_to? '>=' && arg >= @value
+          if arg.is_a? Numeric
+            arg <= @value
+          else
+            arg.respond_to?('size') && arg.size >= @value
+          end
         end
       end
     end

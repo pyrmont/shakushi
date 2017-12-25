@@ -100,8 +100,10 @@ class TypeCheckTypeElementTest < Minitest::Test
       end
 
       should "return false for a failed match" do
-        arg = [ 3 ]
-        assert (@te.match?(arg) == false)
+        invalid_inputs = [ [ 3 ], [ 'Testing' ], 3, 'Test' ]
+        invalid_inputs.each do |i|
+          assert (@te.match?(i) == false)
+        end
       end
     end
   end
