@@ -25,7 +25,8 @@ class TypeCheckParserTest < Minitest::Test
           'String(#size)',
           'Integer(min: 1, max: 10)',
           'Array<String(min: 3)>',
-          'Hash<Symbol,String(min: 3)>'
+          'Hash<Symbol,String(min: 3)>',
+          'Array<String(min: 3)>(max: 10)'
         ]
     end
 

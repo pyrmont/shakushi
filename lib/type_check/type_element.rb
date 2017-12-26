@@ -77,7 +77,7 @@ module TypeCheck
       arg.all? do |a|
         if a.is_a?(Array) # The elements of this collection have components
           a.each.with_index.reduce(nil) do |memo,(component,index)|
-            result = @child_type[index].any? { c.match? component }
+            result = @child_type[index].any? { |c| c.match? component }
             (memo.nil?) ? result : memo && result
           end
         else # The elements of this collection have no components
@@ -87,6 +87,8 @@ module TypeCheck
     end
 
     def match_constraints?(arg)
+      return true if @constraints.nil?
+
       @constraints.all? do |c|
         c.constrain?(arg)
       end

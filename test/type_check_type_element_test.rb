@@ -85,26 +85,30 @@ class TypeCheckTypeElementTest < Minitest::Test
 
     context "has an instance method #match? that" do
       setup do
-        csts = [ TypeCheck::TypeElement::Constraint.new(name: 'min', value: 1),
-                 TypeCheck::TypeElement::Constraint.new(name: 'max', value: 5) ]
-        child_type = TypeCheck::TypeElement::ChildType.new(
-                       [ TypeCheck::TypeElement.new(name: 'String',
-                                                    constraints: csts) ]
-                     )
-        @te = TypeCheck::TypeElement.new(name: 'Array',
-                                         child_type: child_type,
-                                         constraints: csts)
+        type_defs = [ 'Array<String(min: 3)>(max: 10)',
+                      'Hash<Symbol,Integer(max: 100)>',
+                      'String(len: 5)',
+                      'Integer' ]
+        @types = type_defs.map { |t| TypeCheck::Parser.parse(t) }
       end
 
       should "return true for a match" do
-        arg = [ 'Test' ]
-        assert (@te.match?(arg) == true)
+        valid_args = [ [ 'Test' ],
+                       { test: 1 },
+                       'Tests',
+                       2 ]
+        valid_args.each.with_index do |v,index|
+          assert (@types[index].any? { |t| t.match?(v) == true })
+        end
       end
 
       should "return false for a failed match" do
-        invalid_inputs = [ [ 3 ], [ 'Testing' ], 3, 'Test' ]
-        invalid_inputs.each do |i|
-          assert (@te.match?(i) == false)
+        invalid_args = [ [ 3 ],
+                         { test: 'Testing' },
+                         'Test',
+                         'Test' ]
+        invalid_args.each.with_index do |i,index|
+          assert (@types[index].any? { |t| t.match?(i) == false })
         end
       end
     end

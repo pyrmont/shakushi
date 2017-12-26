@@ -13,7 +13,7 @@ module TypeCheck
       str.each_char do |c|
         case c
         when '|'
-          next if content.empty? # The previous character must have been '>'
+          next if content.empty? # Previous character must have been '>' or ')'.
           el = TypeCheck::TypeElement.new name: content
           content = ''
           elements = stack.pop
@@ -28,7 +28,7 @@ module TypeCheck
           first_component = Array.new
           stack.push first_component
         when '>'
-          if content.empty? # The previous character must have been '>'.
+          if content.empty? # Previous character must have been '>' or ')'.
             last_component = stack.pop
           else
             el = TypeCheck::TypeElement.new name: content
@@ -44,8 +44,10 @@ module TypeCheck
           elements.push parent_el
           stack.push elements
         when '('
-          if content.empty? # The previous character must have been '>'.
-            el = stack.pop
+          if content.empty? # Previous character must have been '>'.
+            elements = stack.pop
+            el = elements.pop
+            stack.push elements
           else
             el = TypeCheck::TypeElement.new name: content
             content = ''
