@@ -23,19 +23,23 @@ module TypeCheck
           el = TypeCheck::TypeElement.new name: content
           content = ''
           stack.push el
-          el_collection = Array.new
-          stack.push el_collection
+          child_type = TypeCheck::TypeElement::ChildType.new
+          stack.push child_type
+          first_component = Array.new
+          stack.push first_component
         when '>'
           if content.empty? # The previous character must have been '>'.
-            parent_collection = stack.pop
+            last_component = stack.pop
           else
             el = TypeCheck::TypeElement.new name: content
             content = ''
-            parent_collection = stack.pop
-            parent_collection.push el
+            last_component = stack.pop
+            last_component.push el
           end
+          child_type = stack.pop
+          child_type.push last_component
           parent_el = stack.pop
-          parent_el.children = parent_collection
+          parent_el.child_type = child_type
           elements = stack.pop
           elements.push parent_el
           stack.push elements
@@ -61,13 +65,25 @@ module TypeCheck
           cst_collection = stack.pop
           cst_collection.push cst
           stack.push cst_collection
-        when ','
-          cst_collection = stack.pop
-          cst = cst_collection.pop
-          cst.value = content.strip
-          content = ''
-          cst_collection.push cst
-          stack.push cst_collection
+        when ',' # We could be inside a collection or a set of constraints
+          if stack[-2]&.class == TypeCheck::TypeElement::ChildType
+            previous_component = stack.pop
+            el = TypeCheck::TypeElement.new name: content
+            content = ''
+            previous_component.push el
+            child_type = stack.pop
+            child_type.push previous_component
+            stack.push child_type
+            next_component = Array.new
+            stack.push next_component
+          else
+            cst_collection = stack.pop
+            cst = cst_collection.pop
+            cst.value = content.strip
+            content = ''
+            cst_collection.push cst
+            stack.push cst_collection
+          end
         when ')'
           cst_collection = stack.pop
           cst = cst_collection.pop
@@ -138,7 +154,7 @@ module TypeCheck
         when ')' # rpr
           conditions = [ state.allowed?(:rpr), state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: [ :bar, :end ]
+          state.prohibit_all except: [ :bar, :rab, :end ]
           state.decrement(:paren)
         when '#' # hsh
           conditions = [ state.allowed?(:hsh), state.gtz?(:paren) ]
@@ -156,12 +172,17 @@ module TypeCheck
           i = TypeCheck::Parser.validate_regex(str, start: i+1)
           state.prohibit_all except: [ :rpr, :cma ]
         when ',' # cma
-          conditions = [ state.allowed?(:cma), state.gtz?(:paren) ]
+          conditions = [ state.allowed?(:cma),
+                         state.gtz?(:angle) || state.gtz?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: [ :spc ]
-          state.increment(:const)
+          if state.gtz?(:paren) # Have to test for this first
+            state.prohibit_all except: [ :spc ]
+            state.increment(:const)
+          elsif state.gtz?(:angle)
+            state.prohibit_all except: [ :oth ]
+          end
         when ' ' # spc
-          conditions = [ state.allowed?(:spc), state.gtz?(:paren) ]
+          conditions = [ state.allowed?(:spc) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :sls, :oth ]
         else # oth

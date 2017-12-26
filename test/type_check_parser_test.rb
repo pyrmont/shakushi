@@ -5,57 +5,65 @@ class TypeCheckParserTest < Minitest::Test
   context "TypeCheck:Parser" do
     setup do
       @Parser = TypeCheck::Parser
-      @valid_inputs = ['String',
-                       'Array<String>',
-                       'String|Float',
-                       'Array|Hash|Float',
-                       'Array|Set|Point|Regexp',
-                       'Array<Array<String>>',
-                       'Array<Array<Array<String>>>',
-                       'String|Array<Integer>',
-                       'Array<Integer>|String',
-                       'String|Integer|Array<Hash<Object>>',
-                       'String|Array<String|Integer>|Object',
-                       'Boolean|Array<String|Hash<Point>|Array<String>>',
-                       'Array(len: 5)',
-                       'String(format: /woo/)',
-                       'String(#size)',
-                       'Integer(min: 1, max: 10)'
-                     ]
+      @valid_inputs =
+        [ 'String',
+          'Array<String>',
+          'Hash<Symbol,String>',
+          'Collection<Integer,String,Array<Integer>>',
+          'String|Float',
+          'Array|Hash|Float',
+          'Array|Set|Point|Regexp',
+          'Array<Array<String>>',
+          'Array<Array<Array<String>>>',
+          'String|Array<Integer>',
+          'Array<Integer>|String',
+          'String|Integer|Array<Hash<Symbol,Object>>',
+          'String|Array<String|Integer>|Object',
+          'Boolean|Array<String|Hash<Symbol,Point>|Array<String>>',
+          'Array(len: 5)',
+          'String(format: /woo/)',
+          'String(#size)',
+          'Integer(min: 1, max: 10)',
+          'Array<String(min: 3)>',
+          'Hash<Symbol,String(min: 3)>'
+        ]
     end
 
     context "has a class method .validate that" do
       setup do
-        @invalid_strings = ['',
-                           '|',
-                           '<',
-                           '>',
-                           'Stri,ng',
-                           'Stri:ng',
-                           'Stri/ng',
-                           'Stri ng',
-                           '|String',
-                           'String|',
-                           '<Array',
-                           '>Array',
-                           'Array<>',
-                           'String<',
-                           'String>',
-                           'Integer<<',
-                           'Array<Array<',
-                           'Array<Array<String>',
-                           'Array<String>>|Array<Array',
-                           'Array(len)',
-                           'Array(len: )',
-                           'Array(len: 5',
-                           'Array((len: 5))',
-                           'Array(len: 5, (len: 5)| len: 5)',
-                           'Array(len: 5, len)',
-                           'String(format: /)',
-                           'String(format: //)',
-                           'String(format: /a/th)',
-                           'Integer(mi,n: 5)',
-                           'Integer((min: 5)']
+        @invalid_strings =
+          [ '',
+            '|',
+            '<',
+            '>',
+            'Stri,ng',
+            'Stri:ng',
+            'Stri/ng',
+            'Stri ng',
+            '|String',
+            'String|',
+            '<Array',
+            '>Array',
+            'Array<>',
+            'String<',
+            'String>',
+            'Integer<<',
+            'Array<Array<',
+            'Array<Array<(String)>',
+            'Array<(String>',
+            'Array(len)',
+            'Array(len: )',
+            'Array(len: 5',
+            'Array((len: 5))',
+            'Array(len: 5, (len: 5)| len: 5)',
+            'Array(len: 5, len)',
+            'String(format: /)',
+            'String(format: //)',
+            'String(format: /a/th)',
+            'Integer(mi,n: 5)',
+            'Integer((min: 5)',
+            'Hash<Symbol, Integer(max: 5)>'
+          ]
         @invalid_nonstrings = [nil,
                                Object.new,
                                Array.new]
@@ -104,25 +112,26 @@ class TypeCheckParserTest < Minitest::Test
   def self.reverse_parse(array)
     array.reduce(nil) do |memo, a|
       memo = (memo.nil?) ? '' : memo + '|'
-      memo = memo + a.name
-      memo = if a.children.is_a?(Array)
-               inner = TypeCheckParserTest.reverse_parse(a.children)
-               memo + '<' + inner + '>'
-             else
-               memo
-             end
-      memo = if a.constraints.is_a?(Array)
-               inner = a.constraints.reduce(nil) do |cst_memo, c|
-                 if cst_memo.nil?
-                   cst_memo = c.to_s
-                 else
-                   cst_memo = cst_memo + ', ' + c.to_s
-                 end
-               end
-               memo + '(' + inner + ')'
-             else
-               memo
-             end
+      memo += a.name
+      memo += self.reverse_parse_child(a.child_type)
+      memo += self.reverse_parse_constraints(a.constraints)
     end
+  end
+
+  def self.reverse_parse_child(child)
+    return '' if child.nil?
+    inner = child.reduce(nil) do |memo, c|
+              memo = (memo.nil?) ? '' : memo + ','
+              memo + self.reverse_parse(c)
+            end
+    '<' + inner + '>'
+  end
+
+  def self.reverse_parse_constraints(constraints)
+    return '' if constraints.nil?
+    inner = constraints.reduce(nil) do |memo, c|
+              (memo.nil?) ? c.to_s : memo + ', ' + c.to_s
+            end
+    '(' + inner + ')'
   end
 end

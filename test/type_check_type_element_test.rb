@@ -29,7 +29,7 @@ class TypeCheckTypeElementTest < Minitest::Test
         invalid_children = [ Object.new, String.new ]
         invalid_children.each do |i|
           assert_raises(TypeError) do
-            TypeCheck::TypeElement.new(name: @valid_name, children: i)
+            TypeCheck::TypeElement.new(name: @valid_name, child_type: i)
           end
         end
       end
@@ -87,10 +87,12 @@ class TypeCheckTypeElementTest < Minitest::Test
       setup do
         csts = [ TypeCheck::TypeElement::Constraint.new(name: 'min', value: 1),
                  TypeCheck::TypeElement::Constraint.new(name: 'max', value: 5) ]
-        children = [ TypeCheck::TypeElement.new(name: 'String',
-                                                constraints: csts) ]
+        child_type = TypeCheck::TypeElement::ChildType.new(
+                       [ TypeCheck::TypeElement.new(name: 'String',
+                                                    constraints: csts) ]
+                     )
         @te = TypeCheck::TypeElement.new(name: 'Array',
-                                         children: children,
+                                         child_type: child_type,
                                          constraints: csts)
       end
 

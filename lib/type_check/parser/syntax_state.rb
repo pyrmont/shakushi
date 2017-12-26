@@ -24,6 +24,10 @@ module TypeCheck
         @status[status] == :allowed
       end
 
+      def count(key)
+        @counter[key]
+      end
+
       def decrement(key)
         @counter[key] -= 1
       end
