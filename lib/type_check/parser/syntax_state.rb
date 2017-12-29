@@ -12,6 +12,10 @@ module TypeCheck
         end
       end
 
+      def active?(key)
+        @counter[key] > 0
+      end
+
       def allow(key)
         @status[key] = :allowed
       end

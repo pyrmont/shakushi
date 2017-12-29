@@ -6,11 +6,16 @@ module TypeCheck
       TypeCheck::Parser.validate str
 
       content = ''
+      is_fallthrough = false
+      fallthroughs = [ '/', '"' ]
+      closing_symbol = ''
       stack = Array.new
       elements = Array.new
       stack.push elements
 
       str.each_char do |c|
+        c = '+' + c if is_fallthrough
+
         case c
         when '|'
           next if content.empty? # Previous character must have been '>' or ')'.
@@ -98,6 +103,13 @@ module TypeCheck
           elements.push el
           stack.push elements
         else
+          if is_fallthrough
+            c = c[1]
+            is_fallthrough = false if c == closing_symbol
+          elsif fallthroughs.any? { |f| f == c }
+            is_fallthrough = true
+            closing_symbol = c
+          end
           content = content + c
         end
       end
@@ -118,8 +130,8 @@ module TypeCheck
       msg = "The string to be checked was empty."
       raise SyntaxError, msg if str.empty?
 
-      status_array = [ :bar, :lab, :rab, :lpr, :rpr, :hsh, :cln, :sls, :cma,
-                       :spc, :oth, :end ]
+      status_array = [ :bar, :lab, :rab, :lpr, :rpr, :hsh, :cln, :sls, :qut,
+                       :cma, :spc, :oth, :end ]
       counter_array = [ [ :angle, :paren, :const ],
                         { angle: '>', paren: ')', const: ":' or '#" } ]
       state = TypeCheck::Parser::SyntaxState.new(status_array, counter_array)
@@ -166,12 +178,17 @@ module TypeCheck
         when ':' # cln
           conditions = [ state.allowed?(:cln), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: [ :spc, :oth ]
+          state.prohibit_all except: [ :sls, :qut, :spc, :oth ]
           state.decrement :const
         when '/' #sls
           conditions = [ state.allowed?(:sls), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           i = TypeCheck::Parser.validate_regex(str, start: i+1)
+          state.prohibit_all except: [ :rpr, :cma ]
+        when '"' #qut
+          conditions = [ state.allowed?(:qut), state.inside?(:paren) ]
+          raise SyntaxError, msg unless conditions.all?
+          i = TypeCheck::Parser.validate_string(str, start: i+1)
           state.prohibit_all except: [ :rpr, :cma ]
         when ',' # cma
           conditions = [ state.allowed?(:cma),
@@ -188,7 +205,7 @@ module TypeCheck
         when ' ' # spc
           conditions = [ state.allowed?(:spc) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: [ :sls, :oth ]
+          state.prohibit_all except: [ :sls, :qut, :oth ]
         else # oth
           conditions = [ state.allowed?(:oth) ]
           raise SyntaxError, msg unless conditions.all?
@@ -213,7 +230,7 @@ module TypeCheck
       finish = start
 
       str[start, str.length-start].each_char.with_index(start) do |c, i|
-        if state.inside?(:backslash) # The preceding character was a backslash.
+        if state.active?(:backslash) # The preceding character was a backslash.
           state.decrement(:backslash)
           next # Any character after a backslash is allowed.
         end
@@ -239,6 +256,44 @@ module TypeCheck
       end
 
       msg = "The string '#{str}' is missing a '/'."
+      raise SyntaxError, msg if finish == start
+
+      finish - 1
+    end
+
+    def self.validate_string(str, start: 0)
+      status_array = [ :bsl, :qut, :oth ]
+      counter_array = [ [ :backslash ], { backslash: '/' } ]
+
+      state = SyntaxState.new(status_array, counter_array)
+      state.prohibit_all except: [ :bsl, :oth ]
+      finish = start
+
+      str[start, str.length-start].each_char.with_index(start) do |c, i|
+        if state.active?(:backslash) # The preceding character was a backslash.
+          state.decrement :backslash
+          next # Any character after a backslash is allowed.
+        end
+
+        msg = "The string '#{str}' has an error here: #{str[0, i+1]}"
+
+        case c
+        when '"'
+          raise SyntaxError, msg unless state.allowed?(:qut)
+          state.prohibit_all
+        when '\\'
+          raise SyntaxError, msg unless state.allowed?(:bsl)
+          state.increment :backslash
+        when ',', ')'
+          finish = i
+          break unless state.allowed?(:oth) # The string has ended.
+        else
+          raise SyntaxError, msg unless state.allowed?(:oth)
+          state.allow_all
+        end
+      end
+
+      msg = "The string '#{str}' is missing a '\"'."
       raise SyntaxError, msg if finish == start
 
       finish - 1

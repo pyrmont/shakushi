@@ -27,7 +27,8 @@ class TypeCheckParserTest < Minitest::Test
           'Array<String(min: 3)>',
           'Hash<Symbol,String(min: 3)>',
           'Array<String(min: 3)>(max: 10)',
-          'Hash<Symbol, String>'
+          'Hash<Symbol, String>',
+          'String(val: "This is a test.")'
         ]
     end
 
@@ -98,8 +99,7 @@ class TypeCheckParserTest < Minitest::Test
 
       should "return an array of TypeCheck::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
-          puts TypeCheckParserTest.reverse_parse(@Parser.parse(v))
-          assert_equal v.gsub(/\s+/, ''),
+          assert_equal TypeCheckParserTest.remove_white_space(v),
                        TypeCheckParserTest.reverse_parse(@Parser.parse(v))
         end
       end
@@ -137,5 +137,25 @@ class TypeCheckParserTest < Minitest::Test
               (memo.nil?) ? c.to_s : memo + ',' + c.to_s
             end
     '(' + inner + ')'
+  end
+
+  def self.remove_white_space(str)
+    result = ''
+    is_skip = false
+    skips = [ '/', '"' ]
+    closing_symbol = ''
+    str.each_char do |c|
+      if is_skip
+        is_skip = false if c == closing_symbol
+      else
+        c = '' if c == ' '
+        if skips.any? { |s| s == c }
+          closing_symbol = c
+          is_skip = true
+        end
+      end
+      result += c
+    end
+    result
   end
 end

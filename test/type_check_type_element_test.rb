@@ -88,7 +88,9 @@ class TypeCheckTypeElementTest < Minitest::Test
         type_defs = [ 'Array<String(min: 3)>(max: 10)',
                       'Hash<Symbol,Integer(max: 100)>',
                       'String(len: 5)',
-                      'Integer' ]
+                      'Integer',
+                      'Integer(val: 3)',
+                      'String(val: "This is a test.")' ]
         @types = type_defs.map { |t| TypeCheck::Parser.parse(t) }
       end
 
@@ -96,7 +98,9 @@ class TypeCheckTypeElementTest < Minitest::Test
         valid_args = [ [ 'Test' ],
                        { test: 1 },
                        'Tests',
-                       2 ]
+                       2,
+                       3,
+                       'This is a test.' ]
         valid_args.each.with_index do |v,index|
           assert (@types[index].any? { |t| t.match?(v) == true })
         end
@@ -106,7 +110,9 @@ class TypeCheckTypeElementTest < Minitest::Test
         invalid_args = [ [ 3 ],
                          { test: 'Testing' },
                          'Test',
-                         'Test' ]
+                         'Test',
+                         2,
+                         'This is not a test.' ]
         invalid_args.each.with_index do |i,index|
           assert (@types[index].any? { |t| t.match?(i) == false })
         end

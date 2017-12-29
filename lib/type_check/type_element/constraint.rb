@@ -23,10 +23,8 @@ module TypeCheck
                          @value
                        when 'format'
                          @value.inspect
-                       when 'len', 'max', 'min'
+                       when 'len', 'max', 'min', 'val'
                          @value.to_s
-                       else
-                         @value
                        end
         name_string + value_string
       end
@@ -43,6 +41,8 @@ module TypeCheck
           msg = 'The value is not an Integer.'
           raise SyntaxError, msg unless v == v.to_i.to_s
           @value = v.to_i
+        when 'val'
+          @value = v
         end
       end
 
@@ -65,6 +65,12 @@ module TypeCheck
             arg <= @value
           else
             arg.respond_to?('size') && arg.size >= @value
+          end
+        when 'val'
+          if @value[0] == '"' && @value[-1] == '"'
+            arg.to_s == @value.slice(1..-2)
+          else
+            arg.to_s == @value
           end
         end
       end
