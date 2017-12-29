@@ -90,7 +90,7 @@ class TypeCheckTypeElementTest < Minitest::Test
                       'String(len: 5)',
                       'Integer',
                       'Integer(val: 3)',
-                      'String(val: "This is a test.")' ]
+                      'String(val: "This will match.")' ]
         @types = type_defs.map { |t| TypeCheck::Parser.parse(t) }
       end
 
@@ -100,7 +100,7 @@ class TypeCheckTypeElementTest < Minitest::Test
                        'Tests',
                        2,
                        3,
-                       'This is a test.' ]
+                       'This will match.' ]
         valid_args.each.with_index do |v,index|
           assert (@types[index].any? { |t| t.match?(v) == true })
         end
@@ -112,7 +112,7 @@ class TypeCheckTypeElementTest < Minitest::Test
                          'Test',
                          'Test',
                          2,
-                         'This is not a test.' ]
+                         'This will not match.' ]
         invalid_args.each.with_index do |i,index|
           assert (@types[index].any? { |t| t.match?(i) == false })
         end
