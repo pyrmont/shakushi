@@ -118,7 +118,7 @@ module TypeCheck
       msg = "The string to be checked was empty."
       raise SyntaxError, msg if str.empty?
 
-      status_array = [ :bar, :lab, :rab, :lpr, :rpr,:hsh, :cln, :sls, :cma,
+      status_array = [ :bar, :lab, :rab, :lpr, :rpr, :hsh, :cln, :sls, :cma,
                        :spc, :oth, :end ]
       counter_array = [ [ :angle, :paren, :const ],
                         { angle: '>', paren: ')', const: ":' or '#" } ]
@@ -128,7 +128,7 @@ module TypeCheck
       chars = str.chars
       str_length = chars.size
 
-      state.allow(:oth)
+      state.allow :oth
 
       while (i < str_length)
         msg = "The string '#{str}' has an error here: #{str[0, i+1]}"
@@ -141,46 +141,46 @@ module TypeCheck
           conditions = [ state.allowed?(:lab) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :oth ]
-          state.increment(:angle)
+          state.increment :angle
         when '>' # rab
-          conditions = [ state.allowed?(:rab), state.gtz?(:angle) ]
+          conditions = [ state.allowed?(:rab), state.inside?(:angle) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :bar, :rab, :lpr, :end ]
-          state.decrement(:angle)
+          state.decrement :angle
         when '(' # lpr
-          conditions = [ state.allowed?(:lpr), state.zero?(:paren) ]
+          conditions = [ state.allowed?(:lpr), state.outside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :hsh, :oth ]
-          state.increment(:paren)
-          state.increment(:const)
+          state.increment :paren
+          state.increment :const
         when ')' # rpr
-          conditions = [ state.allowed?(:rpr), state.gtz?(:paren) ]
+          conditions = [ state.allowed?(:rpr), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :bar, :rab, :end ]
-          state.decrement(:paren)
+          state.decrement :paren
         when '#' # hsh
-          conditions = [ state.allowed?(:hsh), state.gtz?(:paren) ]
+          conditions = [ state.allowed?(:hsh), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :oth ]
-          state.decrement(:const)
+          state.decrement :const
         when ':' # cln
-          conditions = [ state.allowed?(:cln), state.gtz?(:paren) ]
+          conditions = [ state.allowed?(:cln), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :spc ]
-          state.decrement(:const)
+          state.decrement :const
         when '/' #sls
-          conditions = [ state.allowed?(:sls), state.gtz?(:paren) ]
+          conditions = [ state.allowed?(:sls), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
           i = TypeCheck::Parser.validate_regex(str, start: i+1)
           state.prohibit_all except: [ :rpr, :cma ]
         when ',' # cma
           conditions = [ state.allowed?(:cma),
-                         state.gtz?(:angle) || state.gtz?(:paren) ]
+                         state.inside?(:angle) || state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
-          if state.gtz?(:paren) # Have to test for this first
+          if state.inside?(:paren) # Have to test for this first
             state.prohibit_all except: [ :spc ]
-            state.increment(:const)
-          elsif state.gtz?(:angle)
+            state.increment :const
+          elsif state.inside?(:angle)
             state.prohibit_all except: [ :oth ]
           end
         when ' ' # spc
@@ -211,7 +211,7 @@ module TypeCheck
       finish = start
 
       str[start, str.length-start].each_char.with_index(start) do |c, i|
-        if state.gtz?(:backslash) # The preceding character was a backslash.
+        if state.inside?(:backslash) # The preceding character was a backslash.
           state.decrement(:backslash)
           next # Any character after a backslash is allowed.
         end

@@ -29,6 +29,8 @@ module TypeCheck
       end
 
       def decrement(key)
+        msg = 'Trying to reduce count below zero.'
+        raise RangeError, msg if @counter[key] == 0
         @counter[key] -= 1
       end
 
@@ -36,12 +38,12 @@ module TypeCheck
         @counter[key] += 1
       end
 
-      def gtz?(key)
+      def inside?(key)
         @counter[key] > 0
       end
 
-      def ltz?(key)
-        @counter[key] < 0
+      def outside?(key)
+        @counter[key] == 0
       end
 
       def prohibit(key)
@@ -65,10 +67,6 @@ module TypeCheck
         @counter.reduce(Array.new) do |memo, c|
           (c[1] == 0) ? memo : memo.push(@closers[c[0]])
         end
-      end
-
-      def zero?(key)
-        @counter[key] == 0
       end
     end
   end

@@ -54,7 +54,7 @@ module TypeCheck
     end
 
     def match?(arg)
-      match_class?(arg) && match_constraints?(arg) &&  match_child_type?(arg)
+      match_class?(arg) && match_constraints?(arg) && match_child_type?(arg)
     end
 
     def match_class?(arg)
