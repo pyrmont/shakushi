@@ -31,7 +31,7 @@ module TypeCheck
           if content.empty? # Previous character must have been '>' or ')'.
             last_component = stack.pop
           else
-            el = TypeCheck::TypeElement.new name: content
+            el = TypeCheck::TypeElement.new name: content.strip
             content = ''
             last_component = stack.pop
             last_component.push el
@@ -70,7 +70,7 @@ module TypeCheck
         when ',' # We could be inside a collection or a set of constraints
           if stack[-2]&.class == TypeCheck::TypeElement::ChildType
             previous_component = stack.pop
-            el = TypeCheck::TypeElement.new name: content
+            el = TypeCheck::TypeElement.new name: content.strip
             content = ''
             previous_component.push el
             child_type = stack.pop
@@ -166,7 +166,7 @@ module TypeCheck
         when ':' # cln
           conditions = [ state.allowed?(:cln), state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
-          state.prohibit_all except: [ :spc ]
+          state.prohibit_all except: [ :spc, :oth ]
           state.decrement :const
         when '/' #sls
           conditions = [ state.allowed?(:sls), state.inside?(:paren) ]
@@ -177,12 +177,14 @@ module TypeCheck
           conditions = [ state.allowed?(:cma),
                          state.inside?(:angle) || state.inside?(:paren) ]
           raise SyntaxError, msg unless conditions.all?
-          if state.inside?(:paren) # Have to test for this first
-            state.prohibit_all except: [ :spc ]
-            state.increment :const
-          elsif state.inside?(:angle)
-            state.prohibit_all except: [ :oth ]
-          end
+          state.prohibit_all except: [ :spc, :oth ]
+          state.increment :const if state.inside?(:paren)
+#          if state.inside?(:paren) # Have to test for this first
+#            state.prohibit_all except: [ :spc ]
+#            state.increment :const
+#          elsif state.inside?(:angle)
+#            state.prohibit_all except: [ :oth ]
+#          end
         when ' ' # spc
           conditions = [ state.allowed?(:spc) ]
           raise SyntaxError, msg unless conditions.all?

@@ -26,7 +26,8 @@ class TypeCheckParserTest < Minitest::Test
           'Integer(min: 1, max: 10)',
           'Array<String(min: 3)>',
           'Hash<Symbol,String(min: 3)>',
-          'Array<String(min: 3)>(max: 10)'
+          'Array<String(min: 3)>(max: 10)',
+          'Hash<Symbol, String>'
         ]
     end
 
@@ -63,7 +64,7 @@ class TypeCheckParserTest < Minitest::Test
             'String(format: /a/th)',
             'Integer(mi,n: 5)',
             'Integer((min: 5)',
-            'Hash<Symbol, Integer(max: 5)>'
+            'Hash< Symbol, Integer(max: 5)>'
           ]
         @invalid_nonstrings = [nil,
                                Object.new,
@@ -97,7 +98,9 @@ class TypeCheckParserTest < Minitest::Test
 
       should "return an array of TypeCheck::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
-          assert_equal v, TypeCheckParserTest.reverse_parse(@Parser.parse(v))
+          puts TypeCheckParserTest.reverse_parse(@Parser.parse(v))
+          assert_equal v.gsub(/\s+/, ''),
+                       TypeCheckParserTest.reverse_parse(@Parser.parse(v))
         end
       end
 
@@ -131,7 +134,7 @@ class TypeCheckParserTest < Minitest::Test
   def self.reverse_parse_constraints(constraints)
     return '' if constraints.nil?
     inner = constraints.reduce(nil) do |memo, c|
-              (memo.nil?) ? c.to_s : memo + ', ' + c.to_s
+              (memo.nil?) ? c.to_s : memo + ',' + c.to_s
             end
     '(' + inner + ')'
   end
