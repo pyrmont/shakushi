@@ -52,7 +52,7 @@ class TypeCheckParserTest < Minitest::Test
             'String>',
             'Integer<<',
             'Array<Array<',
-            'Array<Array<(String)>',
+            'Array<Array<String>',
             'Array<(String>',
             'Array(len)',
             'Array(len: )',
@@ -65,7 +65,9 @@ class TypeCheckParserTest < Minitest::Test
             'String(format: /a/th)',
             'Integer(mi,n: 5)',
             'Integer((min: 5)',
-            'Hash< Symbol, Integer(max: 5)>'
+            'Hash< Symbol, Integer(max: 5)>',
+            'String(format: /This is a test.)',
+            'String(val: "This is a test.)'
           ]
         @invalid_nonstrings = [nil,
                                Object.new,

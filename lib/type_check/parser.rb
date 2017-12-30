@@ -247,8 +247,9 @@ module TypeCheck
           raise SyntaxError, msg unless state.allowed?(:bsl)
           state.increment(:backslash)
         when ',', ')'
+          next if state.allowed?(:oth)
           finish = i
-          break unless state.allowed?(:oth) # The regex has ended.
+          break # The string has ended.
         else
           raise SyntaxError, msg unless state.allowed?(:oth)
           state.allow_all
@@ -285,8 +286,9 @@ module TypeCheck
           raise SyntaxError, msg unless state.allowed?(:bsl)
           state.increment :backslash
         when ',', ')'
+          next if state.allowed?(:oth)
           finish = i
-          break unless state.allowed?(:oth) # The string has ended.
+          break # The string has ended.
         else
           raise SyntaxError, msg unless state.allowed?(:oth)
           state.allow_all

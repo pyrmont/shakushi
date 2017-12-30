@@ -13,37 +13,7 @@ module TypeCheck
         raise ArgumentError, msg if name&.empty?
 
         @name = (name.nil?) ? Constraint::METHOD : name
-        @value = value
-      end
-
-      def to_s
-        name_string = (@name == Constraint::METHOD) ? '#' : @name + ':'
-        value_string = case @name
-                       when Constraint::METHOD
-                         @value
-                       when 'format'
-                         @value.inspect
-                       when 'len', 'max', 'min', 'val'
-                         @value.to_s
-                       end
-        name_string + value_string
-      end
-
-      def value=(v)
-        case @name
-        when Constraint::METHOD
-          @value = v
-        when 'format'
-          msg = 'The value is not a regular expression.'
-          raise SyntaxError, msg unless v[0] == '/' && v[-1] == '/'
-          @value = Regexp.new v[1, v.length-2]
-        when 'len', 'max', 'min'
-          msg = 'The value is not an Integer.'
-          raise SyntaxError, msg unless v == v.to_i.to_s
-          @value = v.to_i
-        when 'val'
-          @value = v
-        end
+        @value = self.parse_value value
       end
 
       def constrain?(arg)
@@ -73,6 +43,44 @@ module TypeCheck
             arg.to_s == @value
           end
         end
+      end
+
+      def parse_value(v)
+        return nil if v == nil
+
+        case @name
+        when Constraint::METHOD
+          @value = v
+        when 'format'
+          return v if v.is_a? Regexp
+          msg = 'The value is not a regular expression.'
+          raise SyntaxError, msg unless v[0] == '/' && v[-1] == '/'
+          @value = Regexp.new v[1, v.length-2]
+        when 'len', 'max', 'min'
+          return v if v.is_a? Integer
+          msg = 'The value is not an Integer.'
+          raise SyntaxError, msg unless v == v.to_i.to_s
+          @value = v.to_i
+        when 'val'
+          @value = v
+        end
+      end
+
+      def to_s
+        name_string = (@name == Constraint::METHOD) ? '#' : @name + ':'
+        value_string = case @name
+                       when Constraint::METHOD
+                         @value
+                       when 'format'
+                         @value.inspect
+                       when 'len', 'max', 'min', 'val'
+                         @value.to_s
+                       end
+        name_string + value_string
+      end
+
+      def value=(v)
+        @value = self.parse_value v
       end
     end
   end

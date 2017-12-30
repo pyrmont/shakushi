@@ -1,10 +1,8 @@
 module TypeCheck
   class TypeElement
     class ChildType < Array
-      def initialize(*child)
-        child.each do |c|
-          self.push c
-        end
+      def initialize(components = nil)
+        components.each { |c| self.push c } unless components.nil?
       end
     end
   end

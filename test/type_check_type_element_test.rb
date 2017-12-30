@@ -85,38 +85,68 @@ class TypeCheckTypeElementTest < Minitest::Test
 
     context "has an instance method #match? that" do
       setup do
-        type_defs = [ 'Array<String(min: 3)>(max: 10)',
-                      'Hash<Symbol,Integer(max: 100)>',
-                      'String(len: 5)',
-                      'Integer',
-                      'Integer(val: 3)',
-                      'String(val: "This will match.")' ]
-        @types = type_defs.map { |t| TypeCheck::Parser.parse(t) }
+        type_defs = [ # Integer
+                      [ { class: 'Integer' } ],
+                      # String|Integer
+                      [ { class: 'String' }, { class: 'Integer' } ],
+                      # Array<String(min: 3)>(max: 10)
+                      [ { class: 'Array',
+                          child_type: [
+                            [ { class: 'String', constraints: 'min: 3' } ]
+                          ],
+                          constraints: 'max: 10' } ],
+                      # Hash<Symbol,Integer(max: 100)>
+                      [ { class: 'Hash',
+                          child_type: [
+                            [ { class: 'Symbol' } ],
+                            [ { class: 'Integer', constraints: 'max: 100' } ]
+                          ] } ],
+                      # String(len: 5)
+                      [ { class: 'String', constraints: 'len: 5' } ],
+                      # Integer(val: 3)
+                      [ { class: 'Integer', constraints: 'val: 3' } ],
+                      # String(val: "This will match.")
+                      [ { class: 'String',
+                          constraints: 'val: "This will match."' } ] ]
+        @types = TypeCheckTypeElementTest.create_types type_defs
       end
 
       should "return true for a match" do
-        valid_args = [ [ 'Test' ],
-                       { test: 1 },
-                       'Tests',
-                       2,
-                       3,
+        valid_args = [ 99, 1, [ 'Test' ], { test: 1 }, 'Tests', 3,
                        'This will match.' ]
         valid_args.each.with_index do |v,index|
-          assert (@types[index].any? { |t| t.match?(v) == true })
+          assert (@types[index].any? { |t| t.match?(v) == true } )
         end
       end
 
       should "return false for a failed match" do
-        invalid_args = [ [ 3 ],
-                         { test: 'Testing' },
-                         'Test',
-                         'Test',
-                         2,
-                         'This will not match.' ]
+        invalid_args = [ 'Not Integer', 3.14, [ 3 ], { test: 'Testing' },
+                         'Test', 2, 'This will not match.' ]
         invalid_args.each.with_index do |i,index|
-          assert (@types[index].any? { |t| t.match?(i) == false })
+          assert (@types[index].any? { |t| t.match?(i) == false } )
         end
       end
+    end
+  end
+
+  def self.create_types(type_defs)
+    type_defs.reduce([]) do |types,type_def|
+      res = type_def.reduce([]) do |memo_t,t|
+              ct = (t[:child_type]) ? TypeCheck::TypeElement::ChildType.new(
+                                        create_types(t[:child_type])) :
+                                      nil
+              csts = t[:constraints]&.split(', ')&.reduce([]) do |memo_c,c|
+                       pieces = c.split(': ')
+                       cst = TypeCheck::TypeElement::Constraint.new(
+                         name: pieces[0],
+                         value: pieces[1])
+                       memo_c.push cst
+                     end
+              memo_t.push TypeCheck::TypeElement.new(name: t[:class],
+                                                     child_type: ct,
+                                                     constraints: csts)
+            end
+      types.push res
     end
   end
 end
