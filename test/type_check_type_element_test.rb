@@ -5,31 +5,72 @@ class TypeCheckTypeElementTest < Minitest::Test
   context "TypeCheck::TypeElement" do
     context "has an instance method #initialize that" do
       setup do
-        @valid_name = 'Test'
+        @valid_name = 'Array'
       end
 
-      should "return a TypeCheck::TypeElement when initialised correctly" do
-        ce = TypeCheck::TypeElement.new(name: @valid_name)
-        assert_kind_of TypeCheck::TypeElement, ce
+      should "initialise with a valid class name" do
+        te = TypeCheck::TypeElement.new(name: @valid_name)
+        assert_kind_of TypeCheck::TypeElement, te
       end
 
-      should "raise an ArgumentError when initialised with an empty string" do
+      should "initialise with a valid class name and child type" do
+        component = TypeCheck::TypeElement.new(name: 'Integer')
+        ct = TypeCheck::TypeElement::ChildType.new([component])
+        te = TypeCheck::TypeElement.new(name: @valid_name, child_type: ct)
+        assert_kind_of TypeCheck::TypeElement, te
+      end
+
+      should "initialise with a valid class name, child type and constraints" do
+        component = TypeCheck::TypeElement.new(name: 'Integer')
+        child_type = TypeCheck::TypeElement::ChildType.new([component])
+        constraint = TypeCheck::TypeElement::Constraint.new(name: 'min',
+                                                            value: '0')
+        te = TypeCheck::TypeElement.new(name: @valid_name,
+                                        child_type: child_type,
+                                        constraints: [constraint])
+        assert_kind_of TypeCheck::TypeElement, te
+      end
+
+      should "raise an ArgumentError if argument 'name' is an empty string" do
         invalid_name = ''
         assert_raises(ArgumentError) do
           TypeCheck::TypeElement.new(name: invalid_name)
         end
       end
 
-      should "raise a TypeError when initialised with wrong typed arguments" do
-        invalid_names = [ nil, Object.new, Array ]
+      should "raise an ArgumentError if argument 'child_type' is empty" do
+        invalid_child_type = TypeCheck::TypeElement::ChildType.new
+        assert_raises(ArgumentError) do
+          TypeCheck::TypeElement.new(name: @valid_name,
+                                     child_type: invalid_child_type)
+        end
+      end
+
+      should "raise an ArgumentError if argument 'constraints' is empty" do
+        invalid_constraints = []
+        assert_raises(ArgumentError) do
+          TypeCheck::TypeElement.new(name: @valid_name,
+                                     constraints: invalid_constraints)
+        end
+      end
+
+      should "raise a TypeError if arguments are incorrectly typed" do
+        invalid_names = [ nil, Object.new, Array.new ]
         invalid_names.each do |i|
           assert_raises(TypeError) { TypeCheck::TypeElement.new(name: i) }
         end
 
-        invalid_children = [ Object.new, String.new ]
-        invalid_children.each do |i|
+        invalid_child_types = [ Object.new, String.new ]
+        invalid_child_types.each do |i|
           assert_raises(TypeError) do
             TypeCheck::TypeElement.new(name: @valid_name, child_type: i)
+          end
+        end
+
+        invalid_constraints = [ Object.new, String.new ]
+        invalid_constraints.each do |i|
+          assert_raises(TypeError) do
+            TypeCheck::TypeElement.new(name: @valid_name, constraints: i)
           end
         end
       end
@@ -37,19 +78,22 @@ class TypeCheckTypeElementTest < Minitest::Test
 
     context "has an instance method #== that" do
       setup do
-        @valid_name = 'Test'
-        @other_valid_name = 'Test 2'
-        @te = TypeCheck::TypeElement.new(name: @valid_name)
+        @class_name = 'Integer'
+        @te = TypeCheck::TypeElement.new(name: @class_name)
       end
 
-      should "return true or false for valid input" do
-        diff_comp = TypeCheck::TypeElement.new(name: @other_valid_name)
-        same_comp = TypeCheck::TypeElement.new(name: @valid_name)
-        assert_equal (@te == diff_comp), false
+      should "return true for a valid matching input" do
+        same_comp = TypeCheck::TypeElement.new(name: @class_name)
         assert_equal (@te == same_comp), true
       end
 
-      should "raise a TypeError when the object to be compared is wrong type" do
+      should "return false for a valid non-matching input" do
+        other_class_name = 'Hash'
+        diff_comp = TypeCheck::TypeElement.new(name: other_class_name)
+        assert_equal (@te == diff_comp), false
+      end
+
+      should "raise a TypeError when comparator is wrong type" do
         invalid_comparisons = [ nil, Object.new, Array.new ]
         invalid_comparisons.each do |i|
           assert_raises(TypeError) { @te == i }
