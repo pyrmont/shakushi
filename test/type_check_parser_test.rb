@@ -1,3 +1,4 @@
+require 'yaml'
 require 'test_helper'
 require 'type_check'
 
@@ -5,73 +6,13 @@ class TypeCheckParserTest < Minitest::Test
   context "TypeCheck:Parser" do
     setup do
       @Parser = TypeCheck::Parser
-      @valid_inputs =
-        [ 'String',
-          'Array<String>',
-          'Hash<Symbol,String>',
-          'Collection<Integer,String,Array<Integer>>',
-          'String|Float',
-          'Array|Hash|Float',
-          'Array|Set|Point|Regexp',
-          'Array<Array<String>>',
-          'Array<Array<Array<String>>>',
-          'String|Array<Integer>',
-          'Array<Integer>|String',
-          'String|Integer|Array<Hash<Symbol,Object>>',
-          'String|Array<String|Integer>|Object',
-          'Boolean|Array<String|Hash<Symbol,Point>|Array<String>>',
-          'Array(len: 5)',
-          'String(format: /woo/)',
-          'String(#size)',
-          'Integer(min: 1, max: 10)',
-          'Array<String(min: 3)>',
-          'Hash<Symbol,String(min: 3)>',
-          'Array<String(min: 3)>(max: 10)',
-          'Hash<Symbol, String>',
-          'String(val: "This is a test.")'
-        ]
+      @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
     end
 
     context "has a class method .validate that" do
       setup do
-        @invalid_strings =
-          [ '',
-            '|',
-            '<',
-            '>',
-            'Stri,ng',
-            'Stri:ng',
-            'Stri/ng',
-            'Stri ng',
-            '|String',
-            'String|',
-            '<Array',
-            '>Array',
-            'Array<>',
-            'String<',
-            'String>',
-            'Integer<<',
-            'Array<Array<',
-            'Array<Array<String>',
-            'Array<(String>',
-            'Array(len)',
-            'Array(len: )',
-            'Array(len: 5',
-            'Array((len: 5))',
-            'Array(len: 5, (len: 5)| len: 5)',
-            'Array(len: 5, len)',
-            'String(format: /)',
-            'String(format: //)',
-            'String(format: /a/th)',
-            'Integer(mi,n: 5)',
-            'Integer((min: 5)',
-            'Hash< Symbol, Integer(max: 5)>',
-            'String(format: /This is a test.)',
-            'String(val: "This is a test.)'
-          ]
-        @invalid_nonstrings = [nil,
-                               Object.new,
-                               Array.new]
+        @invalid_strings = YAML.load_file 'test/data/invalid_type_strings.yml'
+        @invalid_nonstrings = [ nil, Object.new, Array.new ]
       end
 
       should "return nil for valid inputs" do
@@ -88,8 +29,9 @@ class TypeCheckParserTest < Minitest::Test
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          error = assert_raises(SyntaxError) { @Parser.validate(i) }
-#          puts error.message
+          assert_raises(SyntaxError) { @Parser.validate(i) }
+          # error = assert_raises(SyntaxError) { @Parser.validate(i) }
+          # puts error.message
         end
       end
     end
@@ -108,8 +50,9 @@ class TypeCheckParserTest < Minitest::Test
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          error = assert_raises(SyntaxError) { @Parser.parse(i) }
-#          puts error.message
+          assert_raises(SyntaxError) { @Parser.parse(i) }
+          # error = assert_raises(SyntaxError) { @Parser.parse(i) }
+          # puts error.message
         end
       end
     end

@@ -129,43 +129,19 @@ class TypeCheckTypeElementTest < Minitest::Test
 
     context "has an instance method #match? that" do
       setup do
-        type_defs = [ # Integer
-                      [ { class: 'Integer' } ],
-                      # String|Integer
-                      [ { class: 'String' }, { class: 'Integer' } ],
-                      # Array<String(min: 3)>(max: 10)
-                      [ { class: 'Array',
-                          child_type: [
-                            [ { class: 'String', constraints: 'min: 3' } ]
-                          ],
-                          constraints: 'max: 10' } ],
-                      # Hash<Symbol,Integer(max: 100)>
-                      [ { class: 'Hash',
-                          child_type: [
-                            [ { class: 'Symbol' } ],
-                            [ { class: 'Integer', constraints: 'max: 100' } ]
-                          ] } ],
-                      # String(len: 5)
-                      [ { class: 'String', constraints: 'len: 5' } ],
-                      # Integer(val: 3)
-                      [ { class: 'Integer', constraints: 'val: 3' } ],
-                      # String(val: "This will match.")
-                      [ { class: 'String',
-                          constraints: 'val: "This will match."' } ] ]
+        type_defs = YAML.load_file 'test/data/valid_type_defs.yml'
         @types = TypeCheckTestHelper.create_types type_defs
       end
 
       should "return true for a match" do
-        valid_args = [ 99, 1, [ 'Test' ], { test: 1 }, 'Tests', 3,
-                       'This will match.' ]
+        valid_args = YAML.load_file 'test/data/valid_args.yml'
         valid_args.each.with_index do |v,index|
           assert (@types[index].any? { |t| t.match?(v) == true } )
         end
       end
 
       should "return false for a failed match" do
-        invalid_args = [ 'Not Integer', 3.14, [ 3 ], { test: 'Testing' },
-                         'Test', 2, 'This will not match.' ]
+        invalid_args = YAML.load_file 'test/data/invalid_args.yml'
         invalid_args.each.with_index do |i,index|
           assert (@types[index].any? { |t| t.match?(i) == false } )
         end
