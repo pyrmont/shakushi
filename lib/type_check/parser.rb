@@ -196,12 +196,6 @@ module TypeCheck
           raise SyntaxError, msg unless conditions.all?
           state.prohibit_all except: [ :spc, :oth ]
           state.increment :const if state.inside?(:paren)
-#          if state.inside?(:paren) # Have to test for this first
-#            state.prohibit_all except: [ :spc ]
-#            state.increment :const
-#          elsif state.inside?(:angle)
-#            state.prohibit_all except: [ :oth ]
-#          end
         when ' ' # spc
           conditions = [ state.allowed?(:spc) ]
           raise SyntaxError, msg unless conditions.all?
