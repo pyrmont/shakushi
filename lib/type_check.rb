@@ -9,7 +9,7 @@ module TypeCheck
     raise TypeError, msg unless context.is_a? Binding
 
     checks.each do |k,v|
-      arg = context.local_variable_get(k)
+      arg = context.local_variable_get k
       types = TypeCheck::Parser.parse v
       is_match = types.any? { |t| t.match? arg }
       msg = "The object '#{k}' is #{arg.class.name} but expected #{v}"
