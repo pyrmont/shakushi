@@ -6,14 +6,21 @@ class TypeCheckTest < Minitest::Test
     context "has an instance method #check that" do
       setup do
         extend TypeCheck
+        @a = 'Test'
+        @b = 1
+        @arg_types = { :@a => 'String', :@b => 'Integer' }
       end
 
-      should "return a hash of the arguments for valid inputs" do
+      should "return an empty array for valid instance variables" do
+        assert_equal [], check(binding, @arg_types)
+      end
+
+      should "return an empty array for valid local variables" do
         a = 'Test'
         b = 1
-        args = { a: 'String', b: 'Integer' }
-        assert_equal check(binding, args), args
-        a, b = true # This is a hack to avoid the unused variable warning.
+        arg_types = { a: 'String', b: 'Integer' }
+        assert_equal [], check(binding, arg_types)
+        a && b # Hack to avoid the unused variable warning.
       end
 
       should "raise a TypeError if the first argument isn't of type Binding" do
@@ -23,12 +30,31 @@ class TypeCheckTest < Minitest::Test
         end
       end
 
-      should "raise a TypeError if the arguments aren't of the right type" do
-        a = 'Test'
-        b = 1
-        args = { a: 'Integer', b: 'String' }
-        assert_raises(TypeError) { check(binding, args) }
-        a, b = true # This is a hack to avoid the unused variable warning.
+      should "raise a TypeError if the arguments are of the wrong type" do
+        invalid_inputs = [
+          { :@a => 'Integer', :@b => 'Integer' },
+          { :@a => 'String', :@b => 'String' },
+          { :@a => 'Integer', :@b => 'String' }
+        ]
+        invalid_inputs.each do |i|
+          assert_raises(TypeError) { check(binding, i) }
+        end
+      end
+
+      should "with the false flag, return array of arguments of wrong type" do
+        invalid_inputs = [
+          [ [ :@a ], { :@a => 'Integer', :@b => 'Integer' } ],
+          [ [ :@b ], { :@a => 'String', :@b => 'String' } ],
+          [ [ :@a, :@b ], { :@a => 'Integer', :@b => 'String' } ]
+        ]
+        invalid_inputs.each do |i|
+          assert_equal i[0], check(binding, true, i[1])
+        end
+      end
+
+      should "raise a NameError if the arguments aren't defined" do
+        invalid_names = { :@c => 'String' }
+        assert_raises(SyntaxError) { check(binding, invalid_names) }
       end
     end
   end
