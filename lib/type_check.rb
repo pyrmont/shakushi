@@ -19,9 +19,9 @@ module TypeCheck
             end
       types = TypeCheck::Parser.parse v
       is_match = types.any? { |t| t.match? arg }
-      unless collect_invalids
+      unless collect_invalids || is_match
         msg = "Object '#{k}' is #{arg.class.name} but expected #{v}."
-        raise TypeError, msg unless is_match
+        raise TypeError, msg
       end
       (is_match) ? memo : memo.push(k)
     end
