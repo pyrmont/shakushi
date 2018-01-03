@@ -84,13 +84,13 @@ class TypeCheckTypeElementTest < Minitest::Test
 
       should "return true for a valid matching input" do
         same_comp = TypeCheck::TypeElement.new(name: @class_name)
-        assert_equal (@te == same_comp), true
+        assert (@te == same_comp)
       end
 
       should "return false for a valid non-matching input" do
         other_class_name = 'Hash'
         diff_comp = TypeCheck::TypeElement.new(name: other_class_name)
-        assert_equal (@te == diff_comp), false
+        refute (@te == diff_comp)
       end
 
       should "raise a TypeError when comparator is wrong type" do
@@ -110,7 +110,7 @@ class TypeCheckTypeElementTest < Minitest::Test
         csts = [ TypeCheck::TypeElement::Constraint.new(name: 'min', value: 1),
                  TypeCheck::TypeElement::Constraint.new(name: 'max', value: 5) ]
         @te.constraints = csts
-        assert_equal (@te.constraints == csts), true
+        assert (@te.constraints == csts)
       end
 
       should "raise a TypeError when the argument is not an Array" do

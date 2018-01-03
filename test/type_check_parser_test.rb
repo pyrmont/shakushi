@@ -43,8 +43,9 @@ class TypeCheckParserTest < Minitest::Test
 
       should "return an array of TypeCheck::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
-          assert_equal TypeCheckParserTest.remove_white_space(v),
-                       TypeCheckParserTest.reverse_parse(@Parser.parse(v))
+          assert_equal TypeCheckParserTest.reverse_parse(@Parser.parse(v)),
+                       TypeCheckParserTest.remove_white_space(v)
+
         end
       end
 
