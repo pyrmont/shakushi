@@ -1,5 +1,6 @@
 require_relative 'type_check/type_element'
 require_relative 'type_check/parser'
+require_relative 'type_check/cache'
 
 module TypeCheck
   alias types binding
@@ -17,7 +18,11 @@ module TypeCheck
               msg = "Argument '#{k}' is not defined."
               raise SyntaxError, msg
             end
-      types = TypeCheck::Parser.parse v
+      types = if hit = TypeCheck::Cache[v]
+                hit
+              else
+                TypeCheck::Cache[v] = TypeCheck::Parser.parse v
+              end
       is_match = types.any? { |t| t.match? arg }
       unless collect_invalids || is_match
         msg = "Object '#{k}' is #{arg.class.name} but expected #{v}."
