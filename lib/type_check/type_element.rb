@@ -24,6 +24,17 @@ module TypeCheck
       msg = 'Argument constraints was empty.'
       raise ArgumentError, msg if constraints&.empty?
 
+      if name[0] == '#'
+        msg = 'Argument child_type should have been nil.'
+        raise ArgumentError, msg unless child_type.nil?
+        msg = 'Argument constraints should have been nil.'
+        raise ArgumentError, msg unless constraints.nil?
+
+        constraints = [
+          TypeCheck::TypeElement::Constraint.new(name: nil, value: name[1..-1])
+        ]
+        name = 'Object'
+      end
       @name = name
       @child_type = child_type
       @constraints = constraints

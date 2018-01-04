@@ -6,10 +6,11 @@ class TypeCheckParserTest < Minitest::Test
   context "TypeCheck:Parser" do
     setup do
       @Parser = TypeCheck::Parser
+      @Validater = TypeCheck::Parser::Validater
       @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
     end
 
-    context "has a class method .validate that" do
+    context "has a class method Validater.validate that" do
       setup do
         @invalid_strings = YAML.load_file 'test/data/invalid_type_strings.yml'
         @invalid_nonstrings = [ nil, Object.new, Array.new ]
@@ -17,19 +18,19 @@ class TypeCheckParserTest < Minitest::Test
 
       should "return nil for valid inputs" do
         @valid_inputs.each do |v|
-          assert_nil @Parser.validate(v)
+          assert_nil @Validater.validate(v)
         end
       end
 
       should "raise a TypeError for non-string parameters" do
         @invalid_nonstrings.each do |i|
-          assert_raises(TypeError) { @Parser.validate(i) }
+          assert_raises(TypeError) { @Validater.validate(i) }
         end
       end
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          assert_raises(SyntaxError) { @Parser.validate(i) }
+          assert_raises(SyntaxError) { @Validater.validate(i) }
           # error = assert_raises(SyntaxError) { @Parser.validate(i) }
           # puts error.message
         end
@@ -44,7 +45,7 @@ class TypeCheckParserTest < Minitest::Test
       should "return an array of TypeCheck::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
           assert_equal TypeCheckParserTest.reverse_parse(@Parser.parse(v)),
-                       TypeCheckParserTest.remove_white_space(v)
+                       TypeCheckParserTest.prepare_for_comparison(v)
 
         end
       end
@@ -63,8 +64,8 @@ class TypeCheckParserTest < Minitest::Test
     array.reduce(nil) do |memo, a|
       memo = (memo.nil?) ? '' : memo + '|'
       memo += a.name
-      memo += self.reverse_parse_child(a.child_type)
-      memo += self.reverse_parse_constraints(a.constraints)
+      memo += self.reverse_parse_child a.child_type
+      memo += self.reverse_parse_constraints a.constraints
     end
   end
 
@@ -83,6 +84,37 @@ class TypeCheckParserTest < Minitest::Test
               (memo.nil?) ? c.to_s : memo + ',' + c.to_s
             end
     '(' + inner + ')'
+  end
+
+  def self.prepare_for_comparison(str)
+    str = self.remove_white_space str
+    str = self.add_implicit_objects str
+  end
+
+  def self.add_implicit_objects(str)
+    result = ''
+    paren = :outside
+    const = :inactive
+    str.each_char do |c|
+      case c
+      when '('
+        paren = :inside
+      when ')'
+        paren = :outside
+      when '#'
+        if paren == :outside
+          c = 'Object(' + c
+          const = :active
+        end
+      when '|', '>'
+        if const == :active
+          c = ')' + c
+          const = :inactive
+        end
+      end
+      result += c
+    end
+    result = (const == :active) ? result + ')' : result
   end
 
   def self.remove_white_space(str)

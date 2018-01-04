@@ -38,6 +38,14 @@ module TypeCheck
         @counter[key] -= 1
       end
 
+      def disable(key)
+        @status[key] = :disabled
+      end
+
+      def enable(key)
+        @status[key] = :prohibited
+      end
+
       def increment(key)
         @counter[key] += 1
       end
@@ -63,8 +71,10 @@ module TypeCheck
       end
 
       def set_all(status, except: {})
-        @status.transform_values! { |v| v = status }
-        except[:exceptions].each { |k| @status[k] = except[:status] }
+        @status.transform_values! { |v| v = status unless v == :disabled }
+        except[:exceptions].each do |k|
+          @status[k] = except[:status] unless @status[k] == :disabled
+        end
       end
 
       def unbalanced()
