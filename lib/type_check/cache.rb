@@ -9,5 +9,9 @@ module TypeCheck
     def self.[]=(k,v)
       @@Cache[k] = v
     end
+
+    def self.reset()
+      @@Cache = {}
+    end
   end
 end
