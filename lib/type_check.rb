@@ -28,11 +28,28 @@ module TypeCheck
       is_match = types.any? { |t| t.match? arg }
 
       unless collect_invalids || is_match
-        msg = "Object '#{k}' is #{arg.class.name} but expected #{v}."
+        if TypeCheck::instance_method? v
+          msg = "Object '#{k}' does not respond to #{v}."
+        elsif arg.is_a? Enumerable
+          type_string = arg.class.name + TypeCheck.child_types_string(arg)
+          msg = "Object '#{k}' is #{type_string} but expected #{v}."
+        else
+          msg = "Object '#{k}' is #{arg.class.name} but expected #{v}."
+        end
         raise TypeError, msg
       end
 
       (is_match) ? memo : memo.push(k)
     end
+  end
+
+  def self.instance_method?(str)
+    str[0] == '#'
+  end
+
+  def self.child_types_string(arg)
+    child_types = Hash.new
+    arg.each { |a| child_types[a.class.name] = true }
+    '<' + child_types.keys.join('|') + '>'
   end
 end

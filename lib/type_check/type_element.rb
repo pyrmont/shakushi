@@ -24,7 +24,7 @@ module TypeCheck
       msg = 'Argument constraints was empty.'
       raise ArgumentError, msg if constraints&.empty?
 
-      if name[0] == '#'
+      if TypeCheck.instance_method? name
         msg = 'Argument child_type should have been nil.'
         raise ArgumentError, msg unless child_type.nil?
         msg = 'Argument constraints should have been nil.'
@@ -81,8 +81,7 @@ module TypeCheck
     def match_child_type?(arg)
       self_childless = @child_type.nil?
       arg_childless = !arg.is_a?(Enumerable) || arg.count == 0
-      return true if self_childless && arg_childless
-      return false if self_childless && !arg_childless
+      return true if self_childless
       return false if !self_childless && arg_childless
 
       arg.all? do |a|
