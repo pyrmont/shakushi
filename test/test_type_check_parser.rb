@@ -3,38 +3,10 @@ require 'test_helper'
 require 'type_check'
 
 class TypeCheckParserTest < Minitest::Test
-  context "TypeCheck:Parser" do
+  context "TypeCheck::Parser" do
     setup do
       @Parser = TypeCheck::Parser
-      @Validater = TypeCheck::Parser::Validater
       @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
-    end
-
-    context "has a class method Validater.validate that" do
-      setup do
-        @invalid_strings = YAML.load_file 'test/data/invalid_type_strings.yml'
-        @invalid_nonstrings = [ nil, Object.new, Array.new ]
-      end
-
-      should "return nil for valid inputs" do
-        @valid_inputs.each do |v|
-          assert_nil @Validater.validate(v)
-        end
-      end
-
-      should "raise a TypeError for non-string parameters" do
-        @invalid_nonstrings.each do |i|
-          assert_raises(TypeError) { @Validater.validate(i) }
-        end
-      end
-
-      should "raise a SyntaxError for invalid strings" do
-        @invalid_strings.each do |i|
-          assert_raises(SyntaxError) { @Validater.validate(i) }
-          # error = assert_raises(SyntaxError) { @Parser.validate(i) }
-          # puts error.message
-        end
-      end
     end
 
     context "has a class method .parse that" do
