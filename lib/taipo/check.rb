@@ -1,3 +1,7 @@
+require_relative 'cache'
+require_relative 'parser'
+require_relative 'type_element'
+
 module Taipo
   module Check
     alias types binding

@@ -1,3 +1,4 @@
+require_relative 'type_element'
 require_relative 'parser/validater'
 
 module Taipo

@@ -1,7 +1,6 @@
 require_relative 'taipo/cache'
 require_relative 'taipo/check'
 require_relative 'taipo/parser'
-require_relative 'taipo/type_element'
 
 module Taipo
   def self.instance_method?(str)
