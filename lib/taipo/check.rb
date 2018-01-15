@@ -1,4 +1,5 @@
 require_relative 'cache'
+require_relative 'exceptions'
 require_relative 'parser'
 require_relative 'type_element'
 
@@ -17,7 +18,7 @@ module Taipo
                 context.local_variable_get k
               else
                 msg = "Argument '#{k}' is not defined."
-                raise SyntaxError, msg
+                raise Taipo::NameError, msg
               end
 
         types = if hit = Taipo::Cache[v]
@@ -37,7 +38,7 @@ module Taipo
           else
             msg = "Object '#{k}' is #{arg.class.name} but expected #{v}."
           end
-          raise TypeError, msg
+          raise Taipo::TypeError, msg
         end
 
         (is_match) ? memo : memo.push(k)

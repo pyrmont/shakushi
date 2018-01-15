@@ -23,13 +23,13 @@ class TaipoValidaterTest < Minitest::Test
 
       should "raise a TypeError for non-string parameters" do
         @invalid_nonstrings.each do |i|
-          assert_raises(TypeError) { @Validater.validate(i) }
+          assert_raises(Taipo::TypeError) { @Validater.validate(i) }
         end
       end
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          assert_raises(SyntaxError) { @Validater.validate(i) }
+          assert_raises(Taipo::SyntaxError) { @Validater.validate(i) }
           # error = assert_raises(SyntaxError) { @Parser.validate(i) }
           # puts error.message
         end

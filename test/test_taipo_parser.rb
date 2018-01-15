@@ -24,7 +24,7 @@ class TaipoParserTest < Minitest::Test
 
       should "raise a SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
-          assert_raises(SyntaxError) { @Parser.parse(i) }
+          assert_raises(Taipo::SyntaxError) { @Parser.parse(i) }
           # error = assert_raises(SyntaxError) { @Parser.parse(i) }
           # puts error.message
         end

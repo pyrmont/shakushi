@@ -1,5 +1,6 @@
-require_relative 'type_element'
+require_relative 'exceptions'
 require_relative 'parser/validater'
+require_relative 'type_element'
 
 module Taipo
   module Parser

@@ -1,3 +1,4 @@
+require_relative 'exceptions'
 require_relative 'type_element/child_type'
 require_relative 'type_element/constraint'
 
@@ -9,26 +10,26 @@ module Taipo
 
     def initialize(name:, child_type: nil, constraints: nil)
       msg = 'Argument name was not a String.'
-      raise TypeError, msg unless name.is_a? String
+      raise ::TypeError, msg unless name.is_a? String
       msg = 'Argument name was an empty string.'
-      raise ArgumentError, msg if name.empty?
+      raise ::ArgumentError, msg if name.empty?
       msg = 'Argument child_type was not Taipo::TypeElement::ChildType.'
-      raise TypeError, msg unless (
+      raise ::TypeError, msg unless (
                              child_type.nil? ||
                              child_type.is_a?(Taipo::TypeElement::ChildType)
                            )
       msg = 'Argument child_type was empty.'
-      raise ArgumentError, msg if child_type&.empty?
+      raise ::ArgumentError, msg if child_type&.empty?
       msg = 'Argument constraints was not an Array.'
-      raise TypeError, msg unless (constraints.nil? || constraints.is_a?(Array))
+      raise ::TypeError, msg unless (constraints.nil? || constraints.is_a?(Array))
       msg = 'Argument constraints was empty.'
-      raise ArgumentError, msg if constraints&.empty?
+      raise ::ArgumentError, msg if constraints&.empty?
 
       if Taipo.instance_method? name
         msg = 'Argument child_type should have been nil.'
-        raise ArgumentError, msg unless child_type.nil?
+        raise ::ArgumentError, msg unless child_type.nil?
         msg = 'Argument constraints should have been nil.'
-        raise ArgumentError, msg unless constraints.nil?
+        raise ::ArgumentError, msg unless constraints.nil?
 
         constraints = [
           Taipo::TypeElement::Constraint.new(name: nil, value: name[1..-1])
@@ -42,19 +43,19 @@ module Taipo
 
     def ==(comp)
       msg = 'Object to be compared must be of type Taipo::TypeElement.'
-      raise TypeError, msg unless comp.is_a? Taipo::TypeElement
+      raise ::TypeError, msg unless comp.is_a? Taipo::TypeElement
 
       @name == comp.name && @child_type == comp.child_type
     end
 
     def constraints=(csts)
       msg = 'Argument csts was not an Array.'
-      raise TypeError, msg unless csts.is_a? Array
+      raise ::TypeError, msg unless csts.is_a? Array
 
       names = Hash.new
       csts.each do |c|
         msg = 'Contraints must have unique names.'
-        raise SyntaxError, msg if names.key?(c.name)
+        raise Taipo::SyntaxError, msg if names.key?(c.name)
         if c.name == Taipo::TypeElement::Constraint::METHOD
           names['#' + c.value] = true
         else
@@ -73,7 +74,7 @@ module Taipo
         arg.is_a?(TrueClass) || arg.is_a?(FalseClass)
       else
         msg = "Class to match #{@name} is not defined"
-        raise SyntaxError, msg unless Object.const_defined?(@name)
+        raise Taipo::SyntaxError, msg unless Object.const_defined?(@name)
         arg.is_a? Object.const_get(@name)
       end
     end

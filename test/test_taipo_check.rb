@@ -37,7 +37,7 @@ class TaipoCheckTest < Minitest::Test
           { :@a => 'Integer', :@b => 'String' }
         ]
         invalid_inputs.each do |i|
-          assert_raises(TypeError) { check(binding, i) }
+          assert_raises(Taipo::TypeError) { check(binding, i) }
         end
       end
 
@@ -52,9 +52,9 @@ class TaipoCheckTest < Minitest::Test
         end
       end
 
-      should "raise a NameError if the arguments aren't defined" do
+      should "raise a Taipo::NameError if the arguments aren't defined" do
         invalid_names = { :@c => 'String' }
-        assert_raises(SyntaxError) { check(binding, invalid_names) }
+        assert_raises(Taipo::NameError) { check(binding, invalid_names) }
       end
     end
   end

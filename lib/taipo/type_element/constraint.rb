@@ -53,13 +53,13 @@ module Taipo
           @value = v
         when 'format'
           return v if v.is_a? Regexp
-          msg = 'The value is not a regular expression.'
-          raise SyntaxError, msg unless v[0] == '/' && v[-1] == '/'
+          msg = 'The value cannot be cast to a regular expression.'
+          raise ::TypeError, msg unless v[0] == '/' && v[-1] == '/'
           @value = Regexp.new v[1, v.length-2]
         when 'len', 'max', 'min'
           return v if v.is_a? Integer
-          msg = 'The value is not an Integer.'
-          raise SyntaxError, msg unless v == v.to_i.to_s
+          msg = 'The value cannot be cast to an Integer.'
+          raise ::TypeError, msg unless v == v.to_i.to_s
           @value = v.to_i
         when 'val'
           @value = v

@@ -1,4 +1,3 @@
-require_relative 'taipo/cache'
 require_relative 'taipo/check'
 require_relative 'taipo/parser'
 
