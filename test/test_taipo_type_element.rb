@@ -120,7 +120,7 @@ class TaipoTypeElementTest < Minitest::Test
         end
       end
 
-      should "raise a SyntaxError when there duplicate constraints" do
+      should "raise a Taipo::SyntaxError when there duplicate constraints" do
         csts = [ Taipo::TypeElement::Constraint.new(name: 'min', value: 1),
                  Taipo::TypeElement::Constraint.new(name: 'min', value: 5) ]
         assert_raises(Taipo::SyntaxError) { @te.constraints = csts }

@@ -36,7 +36,7 @@ class TaipoCacheTest < Minitest::Test
       end
     end
 
-    context "has a class method .[] that" do
+    context "has a module method .[] that" do
       should "retrieve an item from the cache" do
         value = Object.new
         @Cache['Test'] = value
@@ -44,7 +44,7 @@ class TaipoCacheTest < Minitest::Test
       end
     end
 
-    context "has a class method .[]= that" do
+    context "has a module method .[]= that" do
       should "set the cache" do
         assert_nil @Cache['Test']
         @Cache['Test'] = Object.new

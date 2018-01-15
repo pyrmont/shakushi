@@ -30,7 +30,7 @@ class TaipoCheckTest < Minitest::Test
         end
       end
 
-      should "raise a TypeError if the arguments are of the wrong type" do
+      should "raise a Taipo::TypeError if the arguments are of the wrong type" do
         invalid_inputs = [
           { :@a => 'Integer', :@b => 'Integer' },
           { :@a => 'String', :@b => 'String' },

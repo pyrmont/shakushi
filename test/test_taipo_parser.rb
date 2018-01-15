@@ -9,7 +9,7 @@ class TaipoParserTest < Minitest::Test
       @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
     end
 
-    context "has a class method .parse that" do
+    context "has a module method .parse that" do
       setup do
         @invalid_strings = ['String(len: 5, len: 5)']
       end
@@ -22,7 +22,7 @@ class TaipoParserTest < Minitest::Test
         end
       end
 
-      should "raise a SyntaxError for invalid strings" do
+      should "raise a Taipo::SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
           assert_raises(Taipo::SyntaxError) { @Parser.parse(i) }
           # error = assert_raises(SyntaxError) { @Parser.parse(i) }

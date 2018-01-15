@@ -9,7 +9,7 @@ class TaipoValidaterTest < Minitest::Test
       @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
     end
 
-    context "has a class method .validate that" do
+    context "has a module method .validate that" do
       setup do
         @invalid_strings = YAML.load_file 'test/data/invalid_type_strings.yml'
         @invalid_nonstrings = [ nil, Object.new, Array.new ]
@@ -21,13 +21,13 @@ class TaipoValidaterTest < Minitest::Test
         end
       end
 
-      should "raise a TypeError for non-string parameters" do
+      should "raise a Taipo::TypeError for non-string parameters" do
         @invalid_nonstrings.each do |i|
           assert_raises(Taipo::TypeError) { @Validater.validate(i) }
         end
       end
 
-      should "raise a SyntaxError for invalid strings" do
+      should "raise a Taipo::SyntaxError for invalid strings" do
         @invalid_strings.each do |i|
           assert_raises(Taipo::SyntaxError) { @Validater.validate(i) }
           # error = assert_raises(SyntaxError) { @Parser.validate(i) }
