@@ -1,11 +1,11 @@
 require 'test_helper'
 require 'taipo'
 
-class TaipoTest < Minitest::Test
-  context "Taipo" do
+class TaipoCheckTest < Minitest::Test
+  context "Taipo::Check" do
     context "has an instance method #check that" do
       setup do
-        extend Taipo
+        extend Taipo::Check
         @a = 'Test'
         @b = 1
         @arg_types = { :@a => 'String', :@b => 'Integer' }
