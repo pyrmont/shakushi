@@ -1,6 +1,6 @@
 require_relative 'syntax_state'
 
-module TypeCheck
+module Taipo
   module Parser
     module Validater
       def self.validate(str)
@@ -13,7 +13,7 @@ module TypeCheck
                          :cma, :spc, :oth, :end ]
         counter_array = [ [ :angle, :paren, :const ],
                           { angle: '>', paren: ')', const: ":' or '#" } ]
-        state = TypeCheck::Parser::SyntaxState.new(status_array, counter_array)
+        state = Taipo::Parser::SyntaxState.new(status_array, counter_array)
 
         i = 0
         chars = str.chars
@@ -71,13 +71,13 @@ module TypeCheck
             conditions = [ state.allowed?(:sls), state.inside?(:paren),
                            state.outside?(:const) ]
             raise SyntaxError, msg unless conditions.all?
-            i = TypeCheck::Parser::Validater.validate_regex(str, start: i+1)
+            i = Taipo::Parser::Validater.validate_regex(str, start: i+1)
             state.prohibit_all except: [ :rpr, :cma ]
           when '"' #qut
             conditions = [ state.allowed?(:qut), state.inside?(:paren),
                            state.outside?(:const) ]
             raise SyntaxError, msg unless conditions.all?
-            i = TypeCheck::Parser::Validater.validate_string(str, start: i+1)
+            i = Taipo::Parser::Validater.validate_string(str, start: i+1)
             state.prohibit_all except: [ :rpr, :cma ]
           when ',' # cma
             conditions = [ state.allowed?(:cma),

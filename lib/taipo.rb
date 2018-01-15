@@ -1,8 +1,8 @@
-require_relative 'type_check/type_element'
-require_relative 'type_check/parser'
-require_relative 'type_check/cache'
+require_relative 'taipo/type_element'
+require_relative 'taipo/parser'
+require_relative 'taipo/cache'
 
-module TypeCheck
+module Taipo
   alias types binding
 
   def check(context, collect_invalids = false, **checks)
@@ -19,19 +19,19 @@ module TypeCheck
               raise SyntaxError, msg
             end
 
-      types = if hit = TypeCheck::Cache[v]
+      types = if hit = Taipo::Cache[v]
                 hit
               else
-                TypeCheck::Cache[v] = TypeCheck::Parser.parse v
+                Taipo::Cache[v] = Taipo::Parser.parse v
               end
 
       is_match = types.any? { |t| t.match? arg }
 
       unless collect_invalids || is_match
-        if TypeCheck::instance_method? v
+        if Taipo::instance_method? v
           msg = "Object '#{k}' does not respond to #{v}."
         elsif arg.is_a? Enumerable
-          type_string = arg.class.name + TypeCheck.child_types_string(arg)
+          type_string = arg.class.name + Taipo.child_types_string(arg)
           msg = "Object '#{k}' is #{type_string} but expected #{v}."
         else
           msg = "Object '#{k}' is #{arg.class.name} but expected #{v}."

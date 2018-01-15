@@ -1,9 +1,9 @@
 require_relative 'parser/validater'
 
-module TypeCheck
+module Taipo
   module Parser
     def self.parse(str)
-      TypeCheck::Parser::Validater.validate str
+      Taipo::Parser::Validater.validate str
 
       content = ''
       is_fallthrough = false
@@ -19,16 +19,16 @@ module TypeCheck
         case c
         when '|'
           next if content.empty? # Previous character must have been '>' or ')'.
-          el = TypeCheck::TypeElement.new name: content
+          el = Taipo::TypeElement.new name: content
           content = ''
           elements = stack.pop
           elements.push el
           stack.push elements
         when '<'
-          el = TypeCheck::TypeElement.new name: content
+          el = Taipo::TypeElement.new name: content
           content = ''
           stack.push el
-          child_type = TypeCheck::TypeElement::ChildType.new
+          child_type = Taipo::TypeElement::ChildType.new
           stack.push child_type
           first_component = Array.new
           stack.push first_component
@@ -36,7 +36,7 @@ module TypeCheck
           if content.empty? # Previous character must have been '>' or ')'.
             last_component = stack.pop
           else
-            el = TypeCheck::TypeElement.new name: content.strip
+            el = Taipo::TypeElement.new name: content.strip
             content = ''
             last_component = stack.pop
             last_component.push el
@@ -54,7 +54,7 @@ module TypeCheck
             el = elements.pop
             stack.push elements
           else
-            el = TypeCheck::TypeElement.new name: content
+            el = Taipo::TypeElement.new name: content
             content = ''
           end
           stack.push el
@@ -64,14 +64,14 @@ module TypeCheck
           if bare_method_constraint? stack
             content = content + '#'
           else
-            cst = TypeCheck::TypeElement::Constraint.new
+            cst = Taipo::TypeElement::Constraint.new
             content = ''
             cst_collection = stack.pop
             cst_collection.push cst
             stack.push cst_collection
           end
         when ':'
-          cst = TypeCheck::TypeElement::Constraint.new name: content.strip
+          cst = Taipo::TypeElement::Constraint.new name: content.strip
           content = ''
           cst_collection = stack.pop
           cst_collection.push cst
@@ -79,7 +79,7 @@ module TypeCheck
         when ',' # We could be inside a collection or a set of constraints
           if inside_collection? stack
             previous_component = stack.pop
-            el = TypeCheck::TypeElement.new name: content.strip
+            el = Taipo::TypeElement.new name: content.strip
             content = ''
             previous_component.push el
             child_type = stack.pop
@@ -119,7 +119,7 @@ module TypeCheck
       end
 
       unless content.empty?
-        el = TypeCheck::TypeElement.new name: content
+        el = Taipo::TypeElement.new name: content
         elements = stack.pop
         elements.push el
         stack.push elements
@@ -129,11 +129,11 @@ module TypeCheck
     end
 
     def self.inside_collection?(stack)
-      stack[-2]&.class == TypeCheck::TypeElement::ChildType
+      stack[-2]&.class == Taipo::TypeElement::ChildType
     end
 
     def self.bare_method_constraint?(stack)
-      stack[-2]&.class != TypeCheck::TypeElement
+      stack[-2]&.class != Taipo::TypeElement
     end
   end
 end

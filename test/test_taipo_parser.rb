@@ -1,11 +1,11 @@
 require 'yaml'
 require 'test_helper'
-require 'type_check'
+require 'taipo'
 
-class TypeCheckParserTest < Minitest::Test
-  context "TypeCheck::Parser" do
+class TaipoParserTest < Minitest::Test
+  context "Taipo::Parser" do
     setup do
-      @Parser = TypeCheck::Parser
+      @Parser = Taipo::Parser
       @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
     end
 
@@ -14,10 +14,10 @@ class TypeCheckParserTest < Minitest::Test
         @invalid_strings = ['String(len: 5, len: 5)']
       end
 
-      should "return an array of TypeCheck::TypeElement for valid inputs" do
+      should "return an array of Taipo::TypeElement for valid inputs" do
         @valid_inputs.each do |v|
-          assert_equal TypeCheckParserTest.reverse_parse(@Parser.parse(v)),
-                       TypeCheckParserTest.prepare_for_comparison(v)
+          assert_equal TaipoParserTest.reverse_parse(@Parser.parse(v)),
+                       TaipoParserTest.prepare_for_comparison(v)
 
         end
       end

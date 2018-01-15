@@ -1,4 +1,4 @@
-module TypeCheck
+module Taipo
   class TypeElement
     class ChildType < Array
       def initialize(components = nil)

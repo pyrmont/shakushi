@@ -1,11 +1,11 @@
 require 'yaml'
 require 'test_helper'
-require 'type_check'
+require 'taipo'
 
-class TypeCheckValidaterTest < Minitest::Test
-  context "TypeCheck::Validater" do
+class TaipoValidaterTest < Minitest::Test
+  context "Taipo::Validater" do
     setup do
-      @Validater = TypeCheck::Parser::Validater
+      @Validater = Taipo::Parser::Validater
       @valid_inputs = YAML.load_file 'test/data/valid_type_strings.yml'
     end
 

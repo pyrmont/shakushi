@@ -1,10 +1,10 @@
 require 'test_helper'
-require 'type_check'
+require 'taipo'
 
-class TypeCheckCacheTest < Minitest::Test
-  context "TypeCheck:Cache" do
+class TaipoCacheTest < Minitest::Test
+  context "Taipo:Cache" do
     setup do
-      @Cache = TypeCheck::Cache
+      @Cache = Taipo::Cache
     end
 
     teardown do
@@ -55,7 +55,7 @@ class TypeCheckCacheTest < Minitest::Test
 
   class InstancedObject
     def get(key)
-      TypeCheck::Cache[key]
+      Taipo::Cache[key]
     end
   end
 end

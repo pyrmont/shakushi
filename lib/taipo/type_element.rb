@@ -1,7 +1,7 @@
 require_relative 'type_element/child_type'
 require_relative 'type_element/constraint'
 
-module TypeCheck
+module Taipo
   class TypeElement
     attr_accessor :name
     attr_accessor :child_type
@@ -12,10 +12,10 @@ module TypeCheck
       raise TypeError, msg unless name.is_a? String
       msg = 'Argument name was an empty string.'
       raise ArgumentError, msg if name.empty?
-      msg = 'Argument child_type was not TypeCheck::TypeElement::ChildType.'
+      msg = 'Argument child_type was not Taipo::TypeElement::ChildType.'
       raise TypeError, msg unless (
                              child_type.nil? ||
-                             child_type.is_a?(TypeCheck::TypeElement::ChildType)
+                             child_type.is_a?(Taipo::TypeElement::ChildType)
                            )
       msg = 'Argument child_type was empty.'
       raise ArgumentError, msg if child_type&.empty?
@@ -24,14 +24,14 @@ module TypeCheck
       msg = 'Argument constraints was empty.'
       raise ArgumentError, msg if constraints&.empty?
 
-      if TypeCheck.instance_method? name
+      if Taipo.instance_method? name
         msg = 'Argument child_type should have been nil.'
         raise ArgumentError, msg unless child_type.nil?
         msg = 'Argument constraints should have been nil.'
         raise ArgumentError, msg unless constraints.nil?
 
         constraints = [
-          TypeCheck::TypeElement::Constraint.new(name: nil, value: name[1..-1])
+          Taipo::TypeElement::Constraint.new(name: nil, value: name[1..-1])
         ]
         name = 'Object'
       end
@@ -41,8 +41,8 @@ module TypeCheck
     end
 
     def ==(comp)
-      msg = 'Object to be compared must be of type TypeCheck::TypeElement.'
-      raise TypeError, msg unless comp.is_a? TypeCheck::TypeElement
+      msg = 'Object to be compared must be of type Taipo::TypeElement.'
+      raise TypeError, msg unless comp.is_a? Taipo::TypeElement
 
       @name == comp.name && @child_type == comp.child_type
     end
@@ -55,7 +55,7 @@ module TypeCheck
       csts.each do |c|
         msg = 'Contraints must have unique names.'
         raise SyntaxError, msg if names.key?(c.name)
-        if c.name == TypeCheck::TypeElement::Constraint::METHOD
+        if c.name == Taipo::TypeElement::Constraint::METHOD
           names['#' + c.value] = true
         else
           names[c.name] = true

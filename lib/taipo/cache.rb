@@ -1,4 +1,4 @@
-module TypeCheck
+module Taipo
   module Cache
     @@Cache = {}
 

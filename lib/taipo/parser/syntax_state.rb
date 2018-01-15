@@ -1,4 +1,4 @@
-module TypeCheck
+module Taipo
   module Parser
     class SyntaxState
       def initialize(state_names, counter_names_and_closers = nil)
