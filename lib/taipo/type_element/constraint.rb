@@ -1,21 +1,61 @@
 module Taipo
   class TypeElement
+
+    # A constraint on a type
+    #
+    # @since 1.0.0
+    # @api private
     class Constraint
+    
+      # The identifier for an instance method
+      #
+      # @since 1.0.0
+      # @api private
       METHOD = '#'
 
+      # The name of the constraint
+      #
+      # @since 1.0.0
+      # @api private
       attr_accessor :name
+
+      # The value of the constraint
+      #
+      # @since 1.0.0
+      # @api private
       attr_reader :value
 
+      # Initialize a new constraint
+      #
+      # @param name [String|NilClass] the name of the constraint (if nil, this 
+      #   is an instance method)
+      # @param value [String|NilClass] the value of the constraint (sometimes a
+      #   Constraint is initialized before the value is known)
+      #
+      # @raise [::TypeError] if +name+ or +value+ were of the wrong type, or 
+      #   +value+ was not of the correct type for the type of constraint 
+      # @raise [::ArgumentError] if +name+ was blank
+      #
+      # @since 1.0.0
+      # @api private 
       def initialize(name: nil, value: nil)
         msg = 'Argument name was not nil or a String.'
-        raise TypeError, msg unless name.nil? || name.is_a?(String)
+        raise ::TypeError, msg unless name.nil? || name.is_a?(String)
         msg = 'Argument name was an empty string.'
-        raise ArgumentError, msg if name&.empty?
+        raise ::ArgumentError, msg if name&.empty?
 
         @name = (name.nil?) ? Constraint::METHOD : name
         @value = self.parse_value value
       end
 
+      # Check if +arg+ is within this constraint
+      #
+      # @param arg [Object] the object to check
+      #
+      # @return [Boolean] the result
+      #
+      # @since 1.0.0
+      # @api private
       def constrain?(arg)
         case @name
         when Constraint::METHOD
@@ -45,27 +85,42 @@ module Taipo
         end
       end
 
+      # Parse +v+ and convert to the appropriate form if necessary
+      #
+      # @param v [Object] the value
+      #
+      # @raise [::TypeError] if the value is not appropriate for this type of
+      #   constraint
+      #
+      # @since 1.0.0
+      # @api private
       def parse_value(v)
         return nil if v == nil
 
         case @name
         when Constraint::METHOD
-          @value = v
+          v
         when 'format'
           return v if v.is_a? Regexp
           msg = 'The value cannot be cast to a regular expression.'
           raise ::TypeError, msg unless v[0] == '/' && v[-1] == '/'
-          @value = Regexp.new v[1, v.length-2]
+          Regexp.new v[1, v.length-2]
         when 'len', 'max', 'min'
           return v if v.is_a? Integer
           msg = 'The value cannot be cast to an Integer.'
           raise ::TypeError, msg unless v == v.to_i.to_s
-          @value = v.to_i
+          v.to_i
         when 'val'
-          @value = v
+          v
         end
       end
 
+      # Return the String representation of this constraint
+      #
+      # @return [String] the String representation
+      #
+      # @since 1.0.0
+      # @api private
       def to_s
         name_string = (@name == Constraint::METHOD) ? '#' : @name + ':'
         value_string = case @name
@@ -79,6 +134,16 @@ module Taipo
         name_string + value_string
       end
 
+      # Set +v+ to be the value for this constraint
+      #
+      # @param v [Object] the value to set (this will be parsed using 
+      #   {#parse_value})
+      #
+      # @raise [::TypeError] if the value is not appropriate for this type of
+      #   constraint
+      #
+      # @since 1.0.0
+      # @api private
       def value=(v)
         @value = self.parse_value v
       end

@@ -3,7 +3,21 @@ require_relative 'parser/validater'
 require_relative 'type_element'
 
 module Taipo
+
+  # A parser of Taipo type definitions
+  # @since 1.0.0
   module Parser
+
+    # Return an array of Taipo::TypeElements based on +str+
+    #
+    # @param str [String] a type definition
+    #
+    # @return [Array<Taipo:TypeElement>] the result
+    #
+    # @raise [::TypeError] if +str+ is not a String
+    # @raise [Taipo::SyntaxError] if +str+ is not a valid type definition
+    #
+    # @since 1.0.0 
     def self.parse(str)
       Taipo::Parser::Validater.validate str
 

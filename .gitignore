@@ -9,6 +9,7 @@
 *.db
 jump.rb
 
+/.yardoc
 /data
 /filtrates
 /output

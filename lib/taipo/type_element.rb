@@ -3,11 +3,47 @@ require_relative 'type_element/child_type'
 require_relative 'type_element/constraint'
 
 module Taipo
+
+  # An element representing a type (including children and constraints)
+  #
+  # @since 1.0.0
+  # @api private 
   class TypeElement
+
+    # The name of the element
+    #
+    # @since 1.0.0
+    # @api private
     attr_accessor :name
+
+    # The child type collection for this element
+    #
+    # @since 1.0.0
+    # @api private
     attr_accessor :child_type
+
+    # The constraint collection for this element
+    #
+    # @since 1.0.0
+    # @api private
     attr_reader :constraints
 
+    # Initialize a new type element
+    #
+    # @param name [String] the name of this type
+    # @param child_type [Taipo::TypeElement::ChildType|NilClass] the child type
+    #   collection for this element
+    # @param constraints [Array<Taipo::TypeElement::Constraints|NilClass] an 
+    #   array of constraints for this element
+    #
+    # @raise [::TypeError] if +name+, +child_type+ or +constraints+ was of the
+    #   wrong type
+    # @raise [::ArgumentError] if +name+, +child_type+ or +constraints+ was
+    #   blank or empty, or +child_type+ or +constraints+ was non-nil and this
+    #   is a duck type (ie. a method the type responds to)
+    #
+    # @since 1.0.0
+    # @api private
     def initialize(name:, child_type: nil, constraints: nil)
       msg = 'Argument name was not a String.'
       raise ::TypeError, msg unless name.is_a? String
@@ -41,6 +77,16 @@ module Taipo
       @constraints = constraints
     end
 
+    # Compare the element with +comp+
+    #
+    # @param comp [Taipo::TypeElement] the comparison
+    #
+    # @return [Boolean] the result
+    #
+    # @raise [::TypeError] if +comp+ is of the wrong type
+    #
+    # @since 1.0.0
+    # @api private
     def ==(comp)
       msg = 'Object to be compared must be of type Taipo::TypeElement.'
       raise ::TypeError, msg unless comp.is_a? Taipo::TypeElement
@@ -48,6 +94,7 @@ module Taipo
       @name == comp.name && @child_type == comp.child_type
     end
 
+    
     def constraints=(csts)
       msg = 'Argument csts was not an Array.'
       raise ::TypeError, msg unless csts.is_a? Array

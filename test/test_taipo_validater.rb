@@ -23,7 +23,7 @@ class TaipoValidaterTest < Minitest::Test
 
       should "raise a Taipo::TypeError for non-string parameters" do
         @invalid_nonstrings.each do |i|
-          assert_raises(Taipo::TypeError) { @Validater.validate(i) }
+          assert_raises(::TypeError) { @Validater.validate(i) }
         end
       end
 

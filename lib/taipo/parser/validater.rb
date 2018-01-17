@@ -3,10 +3,22 @@ require_relative 'syntax_state'
 
 module Taipo
   module Parser
+    
+    # A validater of Taipo type definitions
+    # @since 1.0.0
     module Validater
+
+      # Check +str+ is a valid type definition
+      #
+      # @param str [String] a type definition
+      #
+      # @raise [::TypeError] if +str+ is not a String
+      # @raise [Taipo::SyntaxError] if +str+ is not a valid type definition 
+      #
+      # @since 1.0.0
       def self.validate(str)
         msg = "The argument to this method must be of type String."
-        raise Taipo::TypeError, msg unless str.is_a? String
+        raise ::TypeError, msg unless str.is_a? String
         msg = "The string to be checked was empty."
         raise Taipo::SyntaxError, msg if str.empty?
 
@@ -105,6 +117,19 @@ module Taipo
         raise Taipo::SyntaxError, msg_bal unless missing.size == 0
       end
 
+      # Check +str+ is a valid regular expression
+      #
+      # @param str [String] a regular expression delimited by '/'
+      # @param start [Integer] the index within the type definition where this
+      #   regex begins
+      #
+      # @return [Integer] the index within the type definition where this regex
+      #   ends
+      #
+      # @raise [Taipo::SyntaxError] if +str+ is not a valid regular expression
+      #
+      # @since 1.0.0
+      # @api private
       def self.validate_regex(str, start: 0)
         status_array = [ :bsl, :sls, :opt, :oth ]
         counter_array = [ [ :backslash ], { backslash: '/' } ]
@@ -146,6 +171,18 @@ module Taipo
         finish - 1
       end
 
+      # Check +str+ is a valid string
+      #
+      # @param str [String] a string delimited by '"'
+      # @param start [Integer] the index within the type definition where this
+      #   string begins
+      #
+      # @return [Integer] the index within the type definition where this
+      #   string ends
+      # @raise [Taipo::SyntaxError] if +str+ is not a valid string
+      #
+      # @since 1.0.0
+      # @api private
       def self.validate_string(str, start: 0)
         status_array = [ :bsl, :qut, :oth ]
         counter_array = [ [ :backslash ], { backslash: '/' } ]
