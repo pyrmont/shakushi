@@ -7,7 +7,7 @@ module Taipo
   # An element representing a type (including children and constraints)
   #
   # @since 1.0.0
-  # @api private 
+  # @api private
   class TypeElement
 
     # The name of the element
@@ -33,7 +33,7 @@ module Taipo
     # @param name [String] the name of this type
     # @param child_type [Taipo::TypeElement::ChildType|NilClass] the child type
     #   collection for this element
-    # @param constraints [Array<Taipo::TypeElement::Constraints|NilClass] an 
+    # @param constraints [Array<Taipo::TypeElement::Constraints>|NilClass] an
     #   array of constraints for this element
     #
     # @raise [::TypeError] if +name+, +child_type+ or +constraints+ was of the
@@ -94,7 +94,15 @@ module Taipo
       @name == comp.name && @child_type == comp.child_type
     end
 
-    
+    # Set the element's constraints to +csts+
+    #
+    # @param csts [Array<Taipo::TypeElement::Constraint] the constraints
+    #
+    # @raise [::TypeError] if +csts+ was not an Array
+    # @raise [Taipo::SyntaxError] if there are constraints with the same name
+    #
+    # @since 1.0.0
+    # @api private
     def constraints=(csts)
       msg = 'Argument csts was not an Array.'
       raise ::TypeError, msg unless csts.is_a? Array
@@ -112,10 +120,31 @@ module Taipo
       @constraints = csts
     end
 
+    # Check if the argument matches the element
+    #
+    # @param arg [Object] the argument to compare
+    #
+    # @return [Boolean] the result
+    #
+    # @raise [Taipo::SyntaxError] if the element's +name+ is not defined (see
+    #   {#match_class?})
+    #
+    # @since 1.0.0
+    # @api private
     def match?(arg)
       match_class?(arg) && match_constraints?(arg) && match_child_type?(arg)
     end
 
+    # Check if the class of the argument itself matches this element
+    #
+    # @param arg [Object] the argument to compare
+    #
+    # @return [Boolean] the result
+    #
+    # @raise [Taipo::SyntaxError] if the element's +name+ is not defined
+    #
+    # @since 1.0.0
+    # @api private
     def match_class?(arg)
       if @name == 'Boolean'
         arg.is_a?(TrueClass) || arg.is_a?(FalseClass)
@@ -126,6 +155,14 @@ module Taipo
       end
     end
 
+    # Check if the class of the argument's child type matches
+    #
+    # @param arg [Object] the argument to compare
+    #
+    # @return [Boolean] the result
+    #
+    # @since 1.0.0
+    # @api private
     def match_child_type?(arg)
       self_childless = @child_type.nil?
       arg_childless = !arg.is_a?(Enumerable) || arg.count == 0
@@ -144,6 +181,14 @@ module Taipo
       end
     end
 
+    # Check if the argument fits within the constraints
+    #
+    # @param arg [Object] the argument to compare
+    #
+    # @return [Boolean] the result
+    #
+    # @since 1.0.0
+    # @api private
     def match_constraints?(arg)
       return true if @constraints.nil?
 

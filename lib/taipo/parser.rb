@@ -17,7 +17,7 @@ module Taipo
     # @raise [::TypeError] if +str+ is not a String
     # @raise [Taipo::SyntaxError] if +str+ is not a valid type definition
     #
-    # @since 1.0.0 
+    # @since 1.0.0
     def self.parse(str)
       Taipo::Parser::Validater.validate str
 
@@ -144,10 +144,26 @@ module Taipo
       stack.pop
     end
 
+    # Check if the parser is inside a collection
+    #
+    # @param stack [Array] the stack of parsed elements
+    #
+    # @return [Boolean] the result
+    #
+    # @since 1.0.0
+    # @api private
     def self.inside_collection?(stack)
       stack[-2]&.class == Taipo::TypeElement::ChildType
     end
 
+    # Check if this constraint is only a method
+    #
+    # @param stack [Array] the stack of parsed elements
+    #
+    # @return [Boolean] the result
+    #
+    # @since 1.0.0
+    # @api private
     def self.bare_method_constraint?(stack)
       stack[-2]&.class != Taipo::TypeElement
     end
