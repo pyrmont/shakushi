@@ -11,18 +11,29 @@ module Taipo
   module Check
     
     # Syntactic sugar to allow a user to write +check types,...+ and +review 
-    #   types,...+
+    # types,...+
     #
     # @since 1.0.0
     alias types binding
     
-    # Check whether the given arguments match the given type definition in the given context
+    # Check whether the given arguments match the given type definition in the
+    # given context
     #
-    # @param context [Binding] the context in which the arguments to be checked are defined
-    # @param collect_invalids [Boolean] whether to raise an exception for, or collect, an argument that doesn't match its type definition
-    # @param checks [Hash] the arguments to be checked written as <Symbol: String> pairs with the Symbol being the name of the argument and the String being its type definition
+    # @param context [Binding] the context in which the arguments to be checked
+    #   are defined
+    # @param collect_invalids [Boolean] whether to raise an exception for, or 
+    #   collect, an argument that doesn't match its type definition
+    # @param checks [Hash] the arguments to be checked written as <Symbol: 
+    #   String> pairs with the Symbol being the name of the argument and the 
+    #   String being its type definition
     #
-    # @return [Array] the arguments which don't match (ie. an empty array if all arguments match)
+    # @return [Array] the arguments which don't match (ie. an empty array if 
+    #   all arguments match)
+    #
+    # @raise [Taipo::SyntaxError] if the type definitions in +check+ are 
+    #   invalid
+    # @raise [Taipo::TypeError] if the arguments in +check+ don't match the
+    #   given type definition
     #
     # @since 1.0.0
     #
