@@ -57,5 +57,37 @@ class TaipoCheckTest < Minitest::Test
         assert_raises(Taipo::NameError) { check(binding, invalid_names) }
       end
     end
+
+    context "has an instance method #review that" do
+      setup do
+        extend Taipo::Check
+        @a = 'Test'
+        @b = 1
+        @arg_types = { :@a => 'String', :@b => 'Integer' }
+      end
+
+      should "return an empty array for valid instance variables" do
+        assert_equal [], review(binding, @arg_types)
+      end
+
+      should "return an empty array for valid local variables" do
+        a = 'Test'
+        b = 1
+        arg_types = { a: 'String', b: 'Integer' }
+        assert_equal [], review(binding, arg_types)
+        a && b # Hack to avoid the unused variable warning.
+      end
+
+      should "return array of arguments of wrong type" do
+        invalid_inputs = [
+          [ [ :@a ], { :@a => 'Integer', :@b => 'Integer' } ],
+          [ [ :@b ], { :@a => 'String', :@b => 'String' } ],
+          [ [ :@a, :@b ], { :@a => 'Integer', :@b => 'String' } ]
+        ]
+        invalid_inputs.each do |i|
+          assert_equal i[0], review(binding, i[1])
+        end
+      end
+    end
   end
 end

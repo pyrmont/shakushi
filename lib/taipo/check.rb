@@ -4,35 +4,36 @@ require_relative 'parser'
 require_relative 'type_element'
 
 module Taipo
-  
+
   # A dedicated namespace for methods meant to be included by the user
   #
   # @since 1.0.0
   module Check
-    
-    # Syntactic sugar to allow a user to write +check types,...+ and +review 
+
+    # Syntactic sugar to allow a user to write +check types,...+ and +review
     # types,...+
     #
     # @since 1.0.0
     alias types binding
-    
+
     # Check whether the given arguments match the given type definition in the
     # given context
     #
     # @param context [Binding] the context in which the arguments to be checked
     #   are defined
-    # @param collect_invalids [Boolean] whether to raise an exception for, or 
+    # @param collect_invalids [Boolean] whether to raise an exception for, or
     #   collect, an argument that doesn't match its type definition
-    # @param checks [Hash] the arguments to be checked written as <Symbol: 
-    #   String> pairs with the Symbol being the name of the argument and the 
+    # @param checks [Hash] the arguments to be checked written as +Symbol:
+    #   String+ pairs with the Symbol being the name of the argument and the
     #   String being its type definition
     #
-    # @return [Array] the arguments which don't match (ie. an empty array if 
+    # @return [Array] the arguments which don't match (ie. an empty array if
     #   all arguments match)
     #
-    # @raise [Taipo::SyntaxError] if the type definitions in +check+ are 
+    # @raise [::TypeError] if the context is not a Binding
+    # @raise [Taipo::SyntaxError] if the type definitions in +checks+ are
     #   invalid
-    # @raise [Taipo::TypeError] if the arguments in +check+ don't match the
+    # @raise [Taipo::TypeError] if the arguments in +checks+ don't match the
     #   given type definition
     #
     # @since 1.0.0
@@ -47,7 +48,7 @@ module Taipo
     #       check types, str: 'String'
     #       puts str
     #     end
-    #     
+    #
     #     def bar(str)
     #       check types, str: 'Integer'
     #       puts str
@@ -55,8 +56,8 @@ module Taipo
     #   end
     #
     #   a = A.new()
-    #   a.foo('Hello world!')     # "Hello world!"
-    #   a.bar('Goodbye world!')   # raise Taipo::TypeError
+    #   a.foo('Hello world!')     #=> "Hello world!"
+    #   a.bar('Goodbye world!')   #=> raise Taipo::TypeError
     def check(context, collect_invalids = false, **checks)
       msg = "The first argument to this method must be of type Binding."
       raise TypeError, msg unless context.is_a? Binding
@@ -93,6 +94,24 @@ module Taipo
 
         (is_match) ? memo : memo.push(k)
       end
+    end
+
+    # Review whether the given arguments match the given type definition in the
+    # given context
+    #
+    # This is a convenience method for calling {#check} with +collect_invalids+
+    # set to true.
+    #
+    # @param context (see #check)
+    # @param checks (see #check)
+    #
+    # @return (see #check)
+    #
+    # @raise (see #check)
+    #
+    # @since 1.0.0
+    def review(context, **checks)
+      self.check(context, true, checks)
     end
   end
 end
