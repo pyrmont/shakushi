@@ -1,9 +1,5 @@
 source 'https://rubygems.org'
 
 gem 'rake', '~>12.3.0'
-gem 'minitest', '~>5.10.3'
-gem 'minitest-reporters', '~>1.1.19'
-gem 'yard', '~>0.9.12'
-
 gem 'nokogiri', '~>1.8.0'
-gem 'shoulda-context', '~>1.2.0'
+gem 'taipo, ~>1.0.0'
