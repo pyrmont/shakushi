@@ -1,3 +1,0 @@
-module Shakushi
-
-end
