@@ -43,17 +43,18 @@ module Shakushi
     # Return an array of filtered items
     #
     # As described in {Shakushi::Filters#initialize}, this method will filter 
-    # items that match any of the individual {Shakushi::Filter} elements.
+    # out items that do not match any of the individual {Shakushi::Filter} 
+    # elements.
     #
-    # @param items [Array<Shakushi::Feed::Item>] the items to be filtered
+    # @param items [Array<Shakushi::Feed::Entry>] the items to be filtered
     #
-    # @return [Array<Shakushi::Feed::Item>] the filtered items (note: this could
-    #   be an empty array)
+    # @return [Array<Shakushi::Feed::Entry>] the filtered items (note: this 
+    #   could be an empty array)
     #
     # @since 1.0.0
     # @api private
     def filter(items)
-      check types, items: 'Array<Shakushi::Feed::Item>'
+      check types, items: 'Array<Shakushi::Feed::Entry>'
       items.select do |i|
         self.any? do |f|
           f.filter i

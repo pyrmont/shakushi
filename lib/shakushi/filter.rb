@@ -4,8 +4,21 @@ module Shakushi
   class Filter
     include Taipo::Check
 
+    # Initialize a filter
+    #
+    # This creates a filter in either one of two ways. The first way is the
+    # simple provision of a tag and a pattern. The second way is as an array of
+    # tags and patterns. {Shakushi::Filter#filter} will require all tags and
+    # patterns to match.
+    #
+    # @param tag [String] the name of the tag
+    # @param pattern [String|Regexp] the string or regular expression to match
+    # @param tags_and_patterns [Array<Hash<Symbol,String|Regexp> a collection
+    #   of tags and patterns
+    #
+    # @since 1.0.0
     def initialize(tag: nil, pattern: nil, tags_and_patterns: nil)
-      check types, tag: 'String?', pattern: 'Regexp?',
+      check types, tag: 'String?', pattern: 'String?|Regexp?',
         tags_and_patterns: 'Array?<Hash<Symbol,String|Regexp>>'
 
       if (tag.nil? || pattern.nil?) && tags_and_patterns.nil?
@@ -26,7 +39,13 @@ module Shakushi
       end
     end
 
+    # Return an item if it passes through the filter
+    #
+    # This method will filter out items that do not match all of the components
+    # of the filter.
     def filter(arg)
+      check types, arg: 'Shakushi::Feed::Entry'
+
     end
   end
 end
