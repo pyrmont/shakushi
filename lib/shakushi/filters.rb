@@ -21,6 +21,7 @@ module Shakushi
     #   representing the filters
     #
     # @since 1.0.0
+    # @api private
     def initialize(input)
       check types, input: 'Array<Hash|Array<Hash>>'
       input.each do |i|

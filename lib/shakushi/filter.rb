@@ -1,6 +1,20 @@
 require 'taipo'
 
 module Shakushi
+
+  # A filter
+  #
+  # A filter holds one or more patterns with each pattern associated with a
+  # tag.
+  #
+  # If multiple patterns are held by the filter, {Shakushi::Filter#filter}
+  # will filter out elements which do not match all of the patterns. For
+  # situations in which only one of the patterns need to match, instead create
+  # a {Shakushi::Filters} object with each pattern placed in a different
+  # filter.
+  #
+  # @since 1.0.0
+  # @api private
   class Filter
     include Taipo::Check
 
@@ -17,6 +31,7 @@ module Shakushi
     #   of tags and patterns
     #
     # @since 1.0.0
+    # @api private
     def initialize(tag: nil, pattern: nil, tags_and_patterns: nil)
       check types, tag: 'String?', pattern: 'String?|Regexp?',
         tags_and_patterns: 'Array?<Hash<Symbol,String|Regexp>>'
@@ -43,6 +58,9 @@ module Shakushi
     #
     # This method will filter out items that do not match all of the components
     # of the filter.
+    #
+    # @since 1.0.0
+    # @api private
     def filter(arg)
       check types, arg: 'Shakushi::Feed::Entry'
 
