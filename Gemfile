@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'rake', '~>12.3.0'
-gem 'nokogiri', '~>1.8.0'
+gem 'rake', '< 13.0'
+gem 'nokogiri', '< 2.0'
