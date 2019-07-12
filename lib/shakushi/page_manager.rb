@@ -1,16 +1,13 @@
 module Shakushi
   class PageManager
-    include TypeCheck
 
     def initialize(dirname:, page_title:)
-      check types, dirname: 'String', page_title: 'String'
       @output_dirpath = OUTPUT_DIRNAME + FILE_SEP + dirname
       Dir.mkdir @output_dirpath unless File.directory? @output_dirpath
       @page_title = page_title
     end
 
     def save_archive(entries:)
-      check types, entries: 'Array'
       entries_by_year = Hash.new
       entries.each do |e|
         year = e.date.year

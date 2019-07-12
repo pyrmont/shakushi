@@ -9,6 +9,7 @@
 *.db
 jump.rb
 
+/.bundle
 /.yardoc
 /data
 /filtrates
