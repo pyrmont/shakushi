@@ -13,7 +13,6 @@ module Shakushi
   RSS_TAGS = { feed: 'channel', entry: 'item', title: 'title', id: 'guid',
                published: 'pubDate', summary: 'description', link: 'link' }
   FILE_SEP = '/'
-  OUTPUT_DIRNAME = 'output'
   TEMPLATE_DIRNAME = 'templates'
   FEED_FILENAME = 'feed.xml'
   MAX_ITEMS = 20
@@ -49,5 +48,13 @@ module Shakushi
     data = Shakushi::Datastore.new dirname: params[:id]
 
     pm.save_archive entries: data.restore_entries(limit: :none)
+  end
+
+  def self.output_dir
+    @output_dir
+  end
+
+  def self.output_dir=(dirname)
+    @output_dir = dirname
   end
 end

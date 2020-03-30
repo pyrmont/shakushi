@@ -2,7 +2,7 @@ module Shakushi
   class PageManager
 
     def initialize(dirname:, page_title:)
-      @output_dirpath = OUTPUT_DIRNAME + FILE_SEP + dirname
+      @output_dirpath = Shakushi.output_dir + FILE_SEP + dirname
       Dir.mkdir @output_dirpath unless File.directory? @output_dirpath
       @page_title = page_title
     end

@@ -67,7 +67,7 @@ module Shakushi
     end
 
     def save_feed(dirname:)
-      dirpath = OUTPUT_DIRNAME + FILE_SEP + dirname
+      dirpath = Shakushi.output_dir + FILE_SEP + dirname
       Dir.mkdir dirpath unless File.directory? dirpath
       filepath = dirpath + FILE_SEP + FEED_FILENAME
       File.open(filepath, 'w') { |file| file.write(@feed.to_s) }
