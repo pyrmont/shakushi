@@ -5,7 +5,7 @@ module Shakushi
   module XML
     module Parser
       def self.parse(xml_or_url)
-        xml = (url?(xml_or_url)) ? open(xml_or_url).read : xml_or_url
+        xml = (url?(xml_or_url)) ? URI.open(xml_or_url).read : xml_or_url
         doc = Nokogiri::XML xml, &:noblanks
         Shakushi::XML::Element.new doc.root
       end
