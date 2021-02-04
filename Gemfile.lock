@@ -1,17 +1,27 @@
+PATH
+  remote: .
+  specs:
+    shakushi (0.2.0)
+      nokogiri
+
 GEM
   remote: https://rubygems.org/
   specs:
-    mini_portile2 (2.4.0)
-    nokogiri (1.10.8)
-      mini_portile2 (~> 2.4.0)
-    rake (12.3.3)
+    minitest (5.14.3)
+    nokogiri (1.11.1-x86_64-linux)
+      racc (~> 1.4)
+    racc (1.5.2)
+    rake (13.0.3)
+    warning (1.1.0)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
-  nokogiri (< 2.0)
-  rake (< 13.0)
+  minitest
+  rake
+  shakushi!
+  warning
 
 BUNDLED WITH
-   1.17.2
+   2.2.3
